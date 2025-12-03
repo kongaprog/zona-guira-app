@@ -1,12 +1,10 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-// 👇 CAMBIO CLAVE: Ya no importamos 'Negocio' para que no de error
-// Solo importamos la librería de iconos
 import L from 'leaflet';
+import { Negocio } from '../services/googleSheetService';
 
-// 🔧 Arreglo de iconos
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+// 👇 AQUÍ ESTABA EL ERROR: Borramos las líneas de "import icon..." que no se usaban.
+// Usamos enlaces directos para evitar problemas de compilación.
 
 const DefaultIcon = L.icon({
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -18,18 +16,8 @@ const DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+// 📍 Coordenadas de Güira de Melena
 const CENTER_GUIRA: [number, number] = [22.79680, -82.50694]; 
-
-// 👇 AQUÍ DEFINIMOS "NEGOCIO" LOCALMENTE (CORTAMOS LA DEPENDENCIA)
-interface Negocio {
-  id: string;
-  nombre: string;
-  whatsapp: string;
-  categoria: string;
-  descripcion: string;
-  ubicacion: string;
-  foto: string;
-}
 
 interface Props {
   negocios: Negocio[];
