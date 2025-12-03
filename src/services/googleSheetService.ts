@@ -1,6 +1,6 @@
 import Papa from 'papaparse';
 
-// --- DEFINICIONES (Interfaces) ---
+// --- DEFINICIONES ---
 export interface Negocio {
   id: string;
   nombre: string;
@@ -9,9 +9,9 @@ export interface Negocio {
   descripcion: string;
   ubicacion: string;
   foto: string;
+  web: string; // 👇 NUEVO: Aquí guardaremos el enlace
 }
 
-// 👇 ESTA ES LA QUE TE FALTA Y DA EL ERROR
 export interface Producto {
   id: string;
   negocio: string;
@@ -24,7 +24,7 @@ export interface Producto {
 // 1. LINK DE NEGOCIOS (Tu enlace original)
 const NEGOCIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=874763755&single=true&output=csv';
 
-// 2. LINK DE PRODUCTOS (⚠️ ¡PEGA TU NUEVO ENLACE AQUÍ!)
+// 2. LINK DE PRODUCTOS (Tu enlace de productos)
 const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=1126609695&single=true&output=csv'; 
 
 // --- FUNCIONES DE AYUDA ---
@@ -63,6 +63,8 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
             descripcion: buscarDato(row, ['descripción', 'descripcion']) || '',
             ubicacion: limpiarCoordenadas(rawUbicacion),
             foto: buscarDato(row, ['foto', 'imagen']) || '',
+            // 👇 AQUÍ ESTÁ EL CAMBIO: Buscamos palabras clave de tu columna nueva
+            web: buscarDato(row, ['enlaces', 'web', 'facebook', 'grupo', 'redes']) || '', 
           };
         });
         resolve(data.filter((n) => n.ubicacion !== '' && n.nombre !== 'Sin Nombre'));
