@@ -1,4 +1,8 @@
-// 👇 DEFINICIÓN LOCAL (Rompe el círculo)
+import { useState } from 'react';
+// 👇 Importamos la Tienda que acabamos de crear
+import { Tienda } from './Tienda';
+
+// Definición local
 interface Negocio {
   id: string;
   nombre: string;
@@ -15,6 +19,23 @@ interface Props {
 }
 
 export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
+  // 👇 ESTADO: ¿Estamos viendo la tienda?
+  const [verTienda, setVerTienda] = useState(false);
+
+  // Si el usuario quiere ver la tienda, mostramos ese componente
+  if (verTienda) {
+    return (
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#f8fafc", zIndex: 2000, overflowY: "auto" }}>
+        <Tienda 
+          nombreNegocio={negocio.nombre} 
+          numeroWhatsApp={negocio.whatsapp}
+          alCerrar={() => setVerTienda(false)} 
+        />
+      </div>
+    );
+  }
+
+  // Si no, mostramos el Perfil normal
   return (
     <div style={{ 
       position: "fixed", top: 0, left: 0, right: 0, bottom: 0, 
@@ -51,17 +72,21 @@ export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
           {negocio.descripcion || "Bienvenido a mi negocio en Zona Güira."}
         </p>
 
-        {/* BOTONES */}
+        {/* BOTONES DE ACCIÓN */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
           <a 
             href={`https://wa.me/53${negocio.whatsapp}`} 
             target="_blank"
-            style={{ backgroundColor: "#22c55e", color: "white", padding: "12px", borderRadius: "12px", textAlign: "center", textDecoration: "none", fontWeight: "bold" }}
+            style={{ backgroundColor: "#22c55e", color: "white", padding: "12px", borderRadius: "12px", textAlign: "center", textDecoration: "none", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}
           >
-            💬 WhatsApp
+            💬 Chat
           </a>
-          <button style={{ backgroundColor: "#f1f5f9", color: "#94a3b8", border: "none", padding: "12px", borderRadius: "12px", fontWeight: "bold", cursor: "not-allowed" }}>
-            🛍️ Productos (Pronto)
+          {/* 👇 ESTE BOTÓN AHORA ABRE LA TIENDA */}
+          <button 
+            onClick={() => setVerTienda(true)}
+            style={{ backgroundColor: "#3b82f6", color: "white", border: "none", padding: "12px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}
+          >
+            🛍️ Ver Productos
           </button>
         </div>
       </div>

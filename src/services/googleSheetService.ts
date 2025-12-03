@@ -1,6 +1,6 @@
 import Papa from 'papaparse';
 
-// ⚠️ NO BORRES ESTO: La definición que necesita el Mapa
+// --- DEFINICIONES (Interfaces) ---
 export interface Negocio {
   id: string;
   nombre: string;
@@ -11,15 +11,27 @@ export interface Negocio {
   foto: string;
 }
 
-const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=874763755&single=true&output=csv';
+// 👇 ESTA ES LA QUE TE FALTA Y DA EL ERROR
+export interface Producto {
+  id: string;
+  negocio: string;
+  nombre: string;
+  precio: number;
+  foto: string;
+  categoria: string;
+}
 
-// 🧠 Función para limpiar coordenadas (Grados -> Decimales)
+// 1. LINK DE NEGOCIOS (Tu enlace original)
+const NEGOCIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=874763755&single=true&output=csv';
+
+// 2. LINK DE PRODUCTOS (⚠️ ¡PEGA TU NUEVO ENLACE AQUÍ!)
+const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=1126609695&single=true&output=csv'; 
+
+// --- FUNCIONES DE AYUDA ---
 const limpiarCoordenadas = (input: string): string => {
   if (!input) return '';
   const texto = input.trim();
-  // Decimales simples (22.7, -82.5)
   if (texto.match(/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/)) return texto;
-  // Enlaces de Google/Apple
   if (texto.includes('@') || texto.includes('coordinate=')) {
     const match = texto.match(/([-0-9.]+),\s*([-0-9.]+)/);
     if (match) return `${match[1]}, ${match[2]}`;
@@ -27,43 +39,59 @@ const limpiarCoordenadas = (input: string): string => {
   return ''; 
 };
 
-// 🕵️‍♂️ DETECTIVE DE COLUMNAS: Busca la columna correcta aunque cambie el nombre
 const buscarDato = (row: any, keywords: string[]) => {
-  // Buscamos entre todas las columnas de esa fila
   const keys = Object.keys(row);
-  // Encontramos la clave que contenga alguna de las palabras clave
   const keyEncontrada = keys.find(key => 
     keywords.some(palabra => key.toLowerCase().includes(palabra.toLowerCase()))
   );
   return keyEncontrada ? row[keyEncontrada] : '';
 };
 
+// --- FETCH NEGOCIOS ---
 export const fetchNegocios = async (): Promise<Negocio[]> => {
   return new Promise((resolve, reject) => {
-    Papa.parse(GOOGLE_SHEET_CSV_URL, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
+    Papa.parse(NEGOCIOS_CSV_URL, {
+      download: true, header: true, skipEmptyLines: true,
       complete: (results) => {
         const data = results.data.map((row: any) => {
-          // 👇 AQUÍ ESTÁ LA MAGIA: Busca por palabras clave
-          const rawUbicacion = buscarDato(row, ['ubicación', 'ubicacion', 'coordenada', 'mapa', 'dirección']);
-          
+          const rawUbicacion = buscarDato(row, ['ubicación', 'ubicacion', 'coordenada']);
           return {
-            id: buscarDato(row, ['marca temporal', 'timestamp', 'fecha']) || Math.random().toString(), 
-            nombre: buscarDato(row, ['nombre', 'negocio', 'empresa']) || 'Sin Nombre',
-            whatsapp: buscarDato(row, ['whatsapp', 'celular', 'teléfono', 'numero']) || '', 
-            categoria: buscarDato(row, ['categoría', 'categoria', 'tipo']) || 'Varios',
-            descripcion: buscarDato(row, ['descripción', 'descripcion', 'detalles']) || '',
+            id: buscarDato(row, ['marca', 'timestamp']) || Math.random().toString(), 
+            nombre: buscarDato(row, ['nombre', 'negocio']) || 'Sin Nombre',
+            whatsapp: buscarDato(row, ['whatsapp', 'numero']) || '', 
+            categoria: buscarDato(row, ['categoría', 'categoria']) || 'Varios',
+            descripcion: buscarDato(row, ['descripción', 'descripcion']) || '',
             ubicacion: limpiarCoordenadas(rawUbicacion),
-            foto: buscarDato(row, ['foto', 'imagen', 'logo']) || '',
+            foto: buscarDato(row, ['foto', 'imagen']) || '',
           };
         });
+        resolve(data.filter((n) => n.ubicacion !== '' && n.nombre !== 'Sin Nombre'));
+      },
+      error: (error) => reject(error),
+    });
+  });
+};
 
-        // Solo dejamos pasar los que tienen ubicación válida
-        const negociosValidos = data.filter((n) => n.ubicacion !== '' && n.nombre !== 'Sin Nombre');
-        console.log("Negocios encontrados:", negociosValidos);
-        resolve(negociosValidos);
+// --- FETCH PRODUCTOS ---
+export const fetchProductos = async (nombreNegocio: string): Promise<Producto[]> => {
+  return new Promise((resolve, reject) => {
+    Papa.parse(PRODUCTOS_CSV_URL, {
+      download: true, header: true, skipEmptyLines: true,
+      complete: (results) => {
+        const todosLosProductos = results.data.map((row: any, index: number) => ({
+          id: index.toString(),
+          negocio: buscarDato(row, ['negocio', 'tienda']) || '',
+          nombre: buscarDato(row, ['producto', 'nombre', 'item']) || 'Producto sin nombre',
+          precio: parseFloat(buscarDato(row, ['precio', 'costo']) || '0'),
+          foto: buscarDato(row, ['foto', 'imagen']) || '',
+          categoria: buscarDato(row, ['categoria', 'tipo']) || 'General'
+        }));
+
+        const productosDelNegocio = todosLosProductos.filter(p => 
+          p.negocio.trim().toLowerCase() === nombreNegocio.trim().toLowerCase()
+        );
+
+        resolve(productosDelNegocio);
       },
       error: (error) => reject(error),
     });
