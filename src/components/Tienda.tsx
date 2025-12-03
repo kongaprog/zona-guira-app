@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchProductos } from '../services/googleSheetService';
 
+// Definición local de Producto
 interface Producto {
   id: string;
   negocio: string;
@@ -13,22 +14,21 @@ interface Producto {
 interface Props {
   nombreNegocio: string;
   numeroWhatsApp: string;
-  categoria: string; // 👇 NUEVO: Necesitamos saber la categoría aquí
+  // 👇 ESTA LÍNEA ES LA QUE TE FALTA Y CAUSA EL ERROR
+  esModoServicio: boolean; 
   alCerrar: () => void;
 }
 
-export const Tienda = ({ nombreNegocio, numeroWhatsApp, categoria, alCerrar }: Props) => {
+export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar }: Props) => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [carrito, setCarrito] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Detectamos si es un servicio (Taller, Peluquería, etc.)
-  const esServicio = categoria.toLowerCase().match(/taller|reparacion|peluqueria|barberia|unas|uñas|masaje|consultoria|diseño|foto|agencia|tecnico/);
 
   useEffect(() => {
     const cargar = async () => {
       try {
         const data = await fetchProductos(nombreNegocio);
+        // Truco para evitar conflictos de tipos
         setProductos(data as unknown as Producto[]);
       } catch (error) {
         console.error("Error cargando productos:", error);
@@ -53,8 +53,8 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, categoria, alCerrar }: P
       return acc;
     }, {} as Record<string, number>);
 
-    // Mensaje diferente si es servicio o producto
-    let mensaje = `Hola *${nombreNegocio}*, ${esServicio ? 'me interesan estos servicios' : 'quisiera hacer un pedido'}: \n\n`;
+    // Mensaje personalizado según el modo
+    let mensaje = `Hola *${nombreNegocio}*, ${esModoServicio ? 'me interesa agendar estos servicios' : 'quisiera hacer un pedido'}: \n\n`;
     
     Object.entries(resumen).forEach(([nombre, cantidad]) => {
       mensaje += `▪️ ${cantidad}x ${nombre}\n`;
@@ -73,8 +73,8 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, categoria, alCerrar }: P
         <button onClick={alCerrar} style={{ background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer", marginRight: "15px", color: "#64748b" }}>←</button>
         <div>
           <h2 style={{ margin: 0, fontSize: "1.2rem", color: "#1e293b" }}>{nombreNegocio}</h2>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b", fontWeight: "bold" }}>
-            {esServicio ? '📋 Lista de Precios y Servicios' : '🛍️ Catálogo de Productos'}
+          <p style={{ margin: 0, fontSize: "0.85rem", color: esModoServicio ? "#7e22ce" : "#2563eb", fontWeight: "bold" }}>
+            {esModoServicio ? '📋 Lista de Precios y Servicios' : '🛍️ Catálogo de Productos'}
           </p>
         </div>
       </div>
@@ -85,7 +85,7 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, categoria, alCerrar }: P
       ) : productos.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px", backgroundColor: "#f1f5f9", borderRadius: "10px" }}>
           <div style={{ fontSize: "2rem", marginBottom: "10px" }}>📭</div>
-          <p>{esServicio ? 'No hay servicios publicados.' : 'Catálogo vacío.'}</p>
+          <p>{esModoServicio ? 'No hay servicios publicados.' : 'Catálogo vacío.'}</p>
         </div>
       ) : (
         <div style={{ display: "grid", gap: "12px" }}>
@@ -97,8 +97,9 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, categoria, alCerrar }: P
             }}>
               
               <div style={{ display: "flex", alignItems: "center", gap: "15px", flex: 1 }}>
-                {/* LÓGICA VISUAL: Si es servicio, NO mostramos icono grande a menos que tenga foto explícita */}
-                {!esServicio && (
+                
+                {/* LÓGICA VISUAL */}
+                {!esModoServicio && (
                   prod.foto ? (
                     <img src={prod.foto} alt={prod.nombre} style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "8px" }} onError={(e) => {e.currentTarget.style.display='none'}} />
                   ) : (
@@ -106,8 +107,7 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, categoria, alCerrar }: P
                   )
                 )}
                 
-                {/* Si es servicio, usamos un icono pequeño genérico si no hay foto */}
-                {esServicio && prod.foto && (
+                {esModoServicio && prod.foto && (
                    <img src={prod.foto} alt={prod.nombre} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "50%" }} />
                 )}
 
@@ -120,13 +120,13 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, categoria, alCerrar }: P
               <button 
                 onClick={() => agregar(prod)}
                 style={{ 
-                  backgroundColor: esServicio ? "#f3e8ff" : "#eff6ff", 
-                  color: esServicio ? "#7e22ce" : "#2563eb", 
+                  backgroundColor: esModoServicio ? "#f3e8ff" : "#eff6ff", 
+                  color: esModoServicio ? "#7e22ce" : "#2563eb", 
                   border: "none", padding: "8px 12px", borderRadius: "8px", 
                   fontSize: "0.8rem", cursor: "pointer", fontWeight: "bold", whiteSpace: "nowrap" 
                 }}
               >
-                {esServicio ? 'Agendar +' : 'Agregar +'}
+                {esModoServicio ? 'Agendar +' : 'Agregar +'}
               </button>
             </div>
           ))}
@@ -137,11 +137,11 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, categoria, alCerrar }: P
       {carrito.length > 0 && (
         <div style={{ position: "fixed", bottom: "20px", left: "20px", right: "20px", backgroundColor: "#1e293b", color: "white", padding: "15px 20px", borderRadius: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.2)", zIndex: 3000 }}>
           <div>
-            <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{carrito.length} {esServicio ? 'servicios' : 'ítems'}</div>
+            <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{carrito.length} {esModoServicio ? 'servicios' : 'ítems'}</div>
             <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>${total} CUP</div>
           </div>
           <button onClick={generarPedido} style={{ backgroundColor: "#22c55e", color: "white", border: "none", padding: "10px 20px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer" }}>
-            {esServicio ? 'Solicitar Cita →' : 'Hacer Pedido →'}
+            {esModoServicio ? 'Solicitar Cita →' : 'Hacer Pedido →'}
           </button>
         </div>
       )}
