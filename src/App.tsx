@@ -24,6 +24,7 @@ function App() {
   const [busqueda, setBusqueda] = useState("");
   const [categoriaActiva, setCategoriaActiva] = useState("Todas");
 
+  // 👇 Asegúrate de actualizar este link en el futuro con el formulario nacional
   const LINK_FORMULARIO = "https://forms.gle/tZaxyqDWtYFbfGUV6"; 
 
   useEffect(() => {
@@ -35,7 +36,6 @@ function App() {
     });
   }, []);
 
-  // Función de limpieza de texto (quita tildes y mayúsculas)
   const limpiarTexto = (texto: string) => {
     return texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   };
@@ -43,7 +43,7 @@ function App() {
   useEffect(() => {
     let resultado = todosLosNegocios;
 
-    // 1. FILTRO POR BOTONES (Categorías)
+    // FILTROS
     if (categoriaActiva !== "Todas") {
       const catFilter = (n: Negocio, regex: RegExp) => n.categoria.toLowerCase().match(regex);
 
@@ -58,12 +58,11 @@ function App() {
       } else if (categoriaActiva === "Eventos") {
         resultado = resultado.filter(n => catFilter(n, /evento|fiesta|payaso|decoracion|cumpleaños/));
       } else if (categoriaActiva === "Servicios") {
-        // Servicios es "todo lo demás" que no entró arriba (Talleres, oficios, etc.)
         resultado = resultado.filter(n => catFilter(n, /taller|reparacion|peluqueria|barberia|unas|uñas|masaje|consultoria|diseño|foto|agencia|oficio/));
       }
     }
 
-    // 2. FILTRO POR BUSCADOR (Texto y Etiquetas)
+    // BUSCADOR
     if (busqueda !== "") {
       const textoBuscado = limpiarTexto(busqueda);
       
@@ -80,7 +79,6 @@ function App() {
     setNegociosFiltrados(resultado);
   }, [busqueda, categoriaActiva, todosLosNegocios]);
 
-  // Lista de Botones para mostrar en pantalla
   const CATEGORIAS_BOTONES = ["Todas", "Comida", "Tiendas", "Transporte", "Vivienda", "Eventos", "Servicios"];
 
   return (
@@ -93,29 +91,40 @@ function App() {
         />
       ) : (
         <>
-          <nav style={{ backgroundColor: "#1e293b", padding: "15px", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 100 }}>
-            <div style={{ fontWeight: "900", fontSize: "1.2rem" }}>ZONA <span style={{ color: "#38bdf8" }}>GÜIRA</span></div>
-            <a href={LINK_FORMULARIO} target="_blank" style={{ backgroundColor: "#f97316", color: "white", textDecoration: "none", padding: "6px 12px", borderRadius: "20px", fontSize: "0.8rem", fontWeight: "bold" }}>+ Unirme</a>
+          {/* 👇 1. NAV ACTUALIZADO: PLAZA CUBA */}
+          <nav style={{ backgroundColor: "#1e293b", padding: "15px", color: "white", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 10px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontWeight: "900", fontSize: "1.3rem", letterSpacing: "-0.5px" }}>
+              PLAZA <span style={{ color: "#ef4444" }}>CUBA</span>
+            </div>
+            <a href={LINK_FORMULARIO} target="_blank" style={{ backgroundColor: "#ef4444", color: "white", textDecoration: "none", padding: "8px 16px", borderRadius: "20px", fontSize: "0.85rem", fontWeight: "bold", boxShadow: "0 2px 5px rgba(239, 68, 68, 0.4)" }}>
+              + Unirme
+            </a>
           </nav>
 
           <main style={{ maxWidth: "1000px", margin: "0 auto", padding: "15px", width: "100%", boxSizing: "border-box" }}>
             
+            {/* 👇 2. HERO ACTUALIZADO */}
+            <div style={{ textAlign: "center", marginBottom: "20px", padding: "10px 0" }}>
+              <h1 style={{ margin: "0 0 5px 0", color: "#0f172a", fontSize: "1.6rem" }}>El Centro Comercial Digital de Cuba</h1>
+              <p style={{ margin: 0, color: "#64748b", fontSize: "0.95rem" }}>Encuentra negocios, servicios y productos en toda la isla.</p>
+            </div>
+
             {/* BUSCADOR */}
             <div style={{ marginBottom: "15px" }}>
               <input 
                 type="text" 
-                placeholder="🔍 Buscar (Pizza, Taxi, Celular, Alquiler...)" 
+                placeholder="🔍 Buscar (Pizza, Taxi, Vedado, Celular...)" 
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 style={{
-                  width: "100%", padding: "12px 15px", borderRadius: "10px", border: "1px solid #cbd5e1",
+                  width: "100%", padding: "14px 15px", borderRadius: "12px", border: "1px solid #cbd5e1",
                   fontSize: "1rem", boxShadow: "0 2px 5px rgba(0,0,0,0.05)", boxSizing: "border-box", outline: "none"
                 }}
               />
             </div>
 
-            {/* BOTONES DE FILTRO (Scroll Horizontal) */}
-            <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "10px", marginBottom: "5px", scrollbarWidth: "none" }}>
+            {/* FILTROS */}
+            <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "10px", marginBottom: "5px", scrollbarWidth: "none" }}>
               {CATEGORIAS_BOTONES.map((cat) => (
                 <button
                   key={cat}
@@ -123,11 +132,11 @@ function App() {
                   style={{
                     padding: "8px 16px", borderRadius: "20px", border: "none", whiteSpace: "nowrap", cursor: "pointer", fontWeight: "bold", fontSize: "0.9rem",
                     backgroundColor: categoriaActiva === cat ? "#0f172a" : "#e2e8f0",
-                    color: categoriaActiva === cat ? "white" : "#64748b",
+                    color: categoriaActiva === cat ? "white" : "#475569",
                     transition: "all 0.2s"
                   }}
                 >
-                   {cat === "Todas" ? "🏠 Todo" : 
+                   {cat === "Todas" ? "🇨🇺 Todo" : 
                     cat === "Comida" ? "🍔 Comida" : 
                     cat === "Tiendas" ? "🛍️ Tiendas" : 
                     cat === "Transporte" ? "🚕 Taxis" : 
@@ -138,20 +147,21 @@ function App() {
               ))}
             </div>
 
-            <div style={{ marginBottom: "10px", fontSize: "0.85rem", color: "#64748b" }}>
-              Encontramos {negociosFiltrados.length} resultados
+            <div style={{ marginBottom: "10px", fontSize: "0.85rem", color: "#64748b", fontWeight: "bold" }}>
+              📍 {negociosFiltrados.length} resultados en el mapa
             </div>
 
             {/* MAPA */}
             <div style={{ position: "relative" }}>
               {/* @ts-ignore */}
               <Mapa negocios={negociosFiltrados} alSeleccionar={(n) => setNegocioSeleccionado(n)} />
-              {loading && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "white", padding: "10px", borderRadius: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>Cargando...</div>}
+              {loading && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "white", padding: "15px", borderRadius: "12px", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", fontWeight: "bold", color: "#0f172a" }}>Cargando Plaza Cuba...</div>}
             </div>
             
-            <div style={{ marginTop: "30px", textAlign: "center", padding: "20px", backgroundColor: "#eff6ff", borderRadius: "10px" }}>
-              <h3 style={{ color: "#1e40af", fontSize: "1.1rem", margin: "0 0 10px 0" }}>¿Falta tu negocio?</h3>
-              <a href={LINK_FORMULARIO} target="_blank" style={{ display: "inline-block", backgroundColor: "#2563eb", color: "white", padding: "10px 20px", borderRadius: "8px", textDecoration: "none", fontWeight: "bold" }}>Registrarme Gratis</a>
+            <div style={{ marginTop: "30px", textAlign: "center", padding: "30px 20px", backgroundColor: "#fff1f2", borderRadius: "16px" }}>
+              <h3 style={{ color: "#991b1b", fontSize: "1.2rem", margin: "0 0 10px 0" }}>¿Tu negocio no está en Plaza Cuba?</h3>
+              <p style={{ color: "#b91c1c", marginBottom: "15px", fontSize: "0.9rem" }}>Únete gratis hoy y aparece en el mapa nacional.</p>
+              <a href={LINK_FORMULARIO} target="_blank" style={{ display: "inline-block", backgroundColor: "#ef4444", color: "white", padding: "12px 25px", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", boxShadow: "0 4px 10px rgba(239, 68, 68, 0.3)" }}>🚀 Registrar mi Negocio</a>
             </div>
           </main>
         </>
