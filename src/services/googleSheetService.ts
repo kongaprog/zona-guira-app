@@ -9,7 +9,8 @@ export interface Negocio {
   descripcion: string;
   ubicacion: string;
   foto: string;
-  web: string; // 👇 NUEVO: Aquí guardaremos el enlace
+  web: string;       // Enlace a Facebook, Web propia o Grupo
+  etiquetas: string; // 👇 CLAVE: Palabras clave para el buscador (ej: "pizza, queso, delivery")
 }
 
 export interface Producto {
@@ -21,17 +22,21 @@ export interface Producto {
   categoria: string;
 }
 
-// 1. LINK DE NEGOCIOS (Tu enlace original)
+// 1. LINK DE NEGOCIOS (Tu enlace de siempre)
 const NEGOCIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=874763755&single=true&output=csv';
 
 // 2. LINK DE PRODUCTOS (Tu enlace de productos)
 const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=1126609695&single=true&output=csv'; 
 
 // --- FUNCIONES DE AYUDA ---
+
+// Limpia coordenadas sucias o enlaces de mapas
 const limpiarCoordenadas = (input: string): string => {
   if (!input) return '';
   const texto = input.trim();
+  // Caso ideal: ya viene limpio (22.123, -82.123)
   if (texto.match(/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/)) return texto;
+  // Caso enlaces: busca los números dentro del link
   if (texto.includes('@') || texto.includes('coordinate=')) {
     const match = texto.match(/([-0-9.]+),\s*([-0-9.]+)/);
     if (match) return `${match[1]}, ${match[2]}`;
@@ -39,6 +44,7 @@ const limpiarCoordenadas = (input: string): string => {
   return ''; 
 };
 
+// Busca una columna aunque le cambien el nombre (Mayúsculas, acentos, etc.)
 const buscarDato = (row: any, keywords: string[]) => {
   const keys = Object.keys(row);
   const keyEncontrada = keys.find(key => 
@@ -47,7 +53,7 @@ const buscarDato = (row: any, keywords: string[]) => {
   return keyEncontrada ? row[keyEncontrada] : '';
 };
 
-// --- FETCH NEGOCIOS ---
+// --- FETCH NEGOCIOS (CARGAR EL MAPA) ---
 export const fetchNegocios = async (): Promise<Negocio[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(NEGOCIOS_CSV_URL, {
@@ -55,6 +61,7 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
       complete: (results) => {
         const data = results.data.map((row: any) => {
           const rawUbicacion = buscarDato(row, ['ubicación', 'ubicacion', 'coordenada']);
+          
           return {
             id: buscarDato(row, ['marca', 'timestamp']) || Math.random().toString(), 
             nombre: buscarDato(row, ['nombre', 'negocio']) || 'Sin Nombre',
@@ -63,10 +70,16 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
             descripcion: buscarDato(row, ['descripción', 'descripcion']) || '',
             ubicacion: limpiarCoordenadas(rawUbicacion),
             foto: buscarDato(row, ['foto', 'imagen']) || '',
-            // 👇 AQUÍ ESTÁ EL CAMBIO: Buscamos palabras clave de tu columna nueva
+            
+            // 👇 WEB EXTERNA: Busca columnas que parezcan enlaces
             web: buscarDato(row, ['enlaces', 'web', 'facebook', 'grupo', 'redes']) || '', 
+            
+            // 👇 ETIQUETAS SECRETAS: Busca la columna que creaste en el Excel
+            etiquetas: buscarDato(row, ['etiquetas', 'clave', 'tags', 'palabras', 'productos']) || '', 
           };
         });
+        
+        // Filtramos para que no salgan negocios sin ubicación
         resolve(data.filter((n) => n.ubicacion !== '' && n.nombre !== 'Sin Nombre'));
       },
       error: (error) => reject(error),
@@ -74,7 +87,7 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
   });
 };
 
-// --- FETCH PRODUCTOS ---
+// --- FETCH PRODUCTOS (CARGAR LA TIENDA) ---
 export const fetchProductos = async (nombreNegocio: string): Promise<Producto[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(PRODUCTOS_CSV_URL, {
@@ -89,6 +102,7 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Producto[]>
           categoria: buscarDato(row, ['categoria', 'tipo']) || 'General'
         }));
 
+        // Filtramos: Solo devolvemos los productos de ESTE negocio
         const productosDelNegocio = todosLosProductos.filter(p => 
           p.negocio.trim().toLowerCase() === nombreNegocio.trim().toLowerCase()
         );
