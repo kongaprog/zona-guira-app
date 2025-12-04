@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchAnuncios } from '../services/googleSheetService';
 
+// Definición Local
 interface Anuncio {
   id: string;
   fecha: string;
@@ -15,14 +16,17 @@ export const Muro = () => {
   const [todosLosAnuncios, setTodosLosAnuncios] = useState<Anuncio[]>([]);
   const [anunciosFiltrados, setAnunciosFiltrados] = useState<Anuncio[]>([]);
   const [loading, setLoading] = useState(true);
+  
   const [filtroActivo, setFiltroActivo] = useState("Todos");
 
-  // 👇 LINK AL FORMULARIO DE "PUBLICAR ANUNCIO"
-  const LINK_PUBLICAR = "https://forms.gle/TU_LINK_DEL_MURO";
+  // 👇👇👇 ¡OJO AQUÍ! 👇👇👇
+  // BORRA LO QUE HAY ENTRE COMILLAS Y PEGA TU ENLACE DEL FORMULARIO DE ANUNCIOS AQUÍ
+  const LINK_PUBLICAR = "https://docs.google.com/forms/d/e/1FAIpQLSd9msbdsYRS48NCFS5XioTTrVITDGPsdwTU2HtAgD7OmAU2Ew/viewform?usp=header"; 
+  // 👆👆👆👆👆👆👆👆👆👆👆👆
 
   useEffect(() => {
     fetchAnuncios().then((data) => {
-      // Truco TypeScript
+      // Truco de TypeScript
       const datosLimpios = data as unknown as Anuncio[];
       setTodosLosAnuncios(datosLimpios);
       setAnunciosFiltrados(datosLimpios);
@@ -30,6 +34,7 @@ export const Muro = () => {
     });
   }, []);
 
+  // Lógica de Filtrado
   useEffect(() => {
     if (filtroActivo === "Todos") {
       setAnunciosFiltrados(todosLosAnuncios);
@@ -59,7 +64,7 @@ export const Muro = () => {
         <h2 style={{ margin: "0 0 5px 0", fontSize: "1.5rem", color: "#0f172a" }}>El Muro 📢</h2>
         <p style={{ margin: 0, fontSize: "0.9rem", color: "#64748b" }}>Anuncios flash de 24h.</p>
         
-        {/* BOTONES */}
+        {/* BOTONES DE FILTRO */}
         <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "5px", marginTop: "15px", scrollbarWidth: "none" }}>
           {BOTONES_MURO.map((cat) => (
             <button
@@ -69,8 +74,7 @@ export const Muro = () => {
                 padding: "6px 12px", borderRadius: "15px", border: "1px solid #cbd5e1", 
                 whiteSpace: "nowrap", cursor: "pointer", fontWeight: "bold", fontSize: "0.85rem",
                 backgroundColor: filtroActivo === cat ? "#0f172a" : "white",
-                color: filtroActivo === cat ? "white" : "#475569",
-                transition: "all 0.2s"
+                color: filtroActivo === cat ? "white" : "#475569"
               }}
             >
               {cat}
@@ -78,20 +82,22 @@ export const Muro = () => {
           ))}
         </div>
 
+        {/* BOTÓN DE PUBLICAR */}
         <a 
           href={LINK_PUBLICAR} 
           target="_blank"
           style={{ 
             display: "block", marginTop: "15px", backgroundColor: "#ef4444", color: "white", 
-            textAlign: "center", padding: "12px", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "0.9rem", boxShadow: "0 4px 10px rgba(239,68,68,0.3)"
+            textAlign: "center", padding: "12px", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "1rem", boxShadow: "0 4px 10px rgba(239,68,68,0.3)"
           }}
         >
           ✍️ Publicar Anuncio
         </a>
       </div>
 
-      {/* LISTA */}
+      {/* LISTA DE ANUNCIOS */}
       <div style={{ padding: "15px", display: "flex", flexDirection: "column", gap: "15px" }}>
+        
         {loading ? (
           <div style={{ textAlign: "center", padding: "20px", color: "#64748b" }}>Cargando anuncios...</div>
         ) : anunciosFiltrados.length === 0 ? (
