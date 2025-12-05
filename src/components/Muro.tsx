@@ -19,10 +19,8 @@ export const Muro = () => {
   
   const [filtroActivo, setFiltroActivo] = useState("Todos");
 
-  // 👇👇👇 ¡OJO AQUÍ! 👇👇👇
-  // BORRA LO QUE HAY ENTRE COMILLAS Y PEGA TU ENLACE DEL FORMULARIO DE ANUNCIOS AQUÍ
-  const LINK_PUBLICAR = "https://docs.google.com/forms/d/e/1FAIpQLSd9msbdsYRS48NCFS5XioTTrVITDGPsdwTU2HtAgD7OmAU2Ew/viewform?usp=header"; 
-  // 👆👆👆👆👆👆👆👆👆👆👆👆
+  // 👇 AQUÍ ESTÁ TU NUEVO ENLACE AL FORMULARIO
+  const LINK_PUBLICAR = "https://docs.google.com/forms/d/e/1FAIpQLSfHqC6Cbq4mTLGt0CyO_qgEHQUf1HeBDIbw9sgcvbJNzWqgtA/viewform?usp=header"; 
 
   useEffect(() => {
     fetchAnuncios().then((data) => {

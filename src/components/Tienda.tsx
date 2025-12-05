@@ -9,12 +9,12 @@ interface Producto {
   precio: number;
   foto: string;
   categoria: string;
+  descripcion: string; // 👇 NUEVO
 }
 
 interface Props {
   nombreNegocio: string;
   numeroWhatsApp: string;
-  // 👇 ESTA LÍNEA ES LA QUE TE FALTA Y CAUSA EL ERROR
   esModoServicio: boolean; 
   alCerrar: () => void;
 }
@@ -28,7 +28,6 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
     const cargar = async () => {
       try {
         const data = await fetchProductos(nombreNegocio);
-        // Truco para evitar conflictos de tipos
         setProductos(data as unknown as Producto[]);
       } catch (error) {
         console.error("Error cargando productos:", error);
@@ -53,7 +52,6 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
       return acc;
     }, {} as Record<string, number>);
 
-    // Mensaje personalizado según el modo
     let mensaje = `Hola *${nombreNegocio}*, ${esModoServicio ? 'me interesa agendar estos servicios' : 'quisiera hacer un pedido'}: \n\n`;
     
     Object.entries(resumen).forEach(([nombre, cantidad]) => {
@@ -98,7 +96,6 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
               
               <div style={{ display: "flex", alignItems: "center", gap: "15px", flex: 1 }}>
                 
-                {/* LÓGICA VISUAL */}
                 {!esModoServicio && (
                   prod.foto ? (
                     <img src={prod.foto} alt={prod.nombre} style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "8px" }} onError={(e) => {e.currentTarget.style.display='none'}} />
@@ -113,6 +110,12 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
 
                 <div>
                   <h4 style={{ margin: "0 0 2px 0", color: "#334155", fontSize: "0.95rem" }}>{prod.nombre}</h4>
+                  
+                  {/* 👇 NUEVO: Descripción del producto/servicio */}
+                  {prod.descripcion && (
+                    <p style={{ margin: "0 0 4px 0", color: "#64748b", fontSize: "0.75rem", lineHeight: "1.3" }}>{prod.descripcion}</p>
+                  )}
+
                   <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "0.9rem" }}>${prod.precio}</span>
                 </div>
               </div>

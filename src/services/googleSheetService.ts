@@ -12,7 +12,7 @@ export interface Negocio {
   foto: string;
   web: string;
   etiquetas: string;
-  provincia: string; // 👇 NUEVO: Para el filtro de bienvenida
+  provincia: string;
 }
 
 export interface Producto {
@@ -22,6 +22,7 @@ export interface Producto {
   precio: number;
   foto: string;
   categoria: string;
+  descripcion: string; // 👇 NUEVO: Para el detalle del producto/servicio
 }
 
 export interface Anuncio {
@@ -69,7 +70,7 @@ const buscarDato = (row: any, keywords: string[]) => {
 
 // --- 4. FUNCIONES DE CARGA (FETCH) ---
 
-// Cargar Mapa (Negocios)
+// Cargar Mapa
 export const fetchNegocios = async (): Promise<Negocio[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(NEGOCIOS_CSV_URL, {
@@ -86,8 +87,7 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
             ubicacion: limpiarCoordenadas(rawUbicacion),
             foto: buscarDato(row, ['foto', 'imagen']) || '',
             web: buscarDato(row, ['enlaces', 'web', 'facebook', 'grupo', 'redes']) || '', 
-            etiquetas: buscarDato(row, ['etiquetas', 'clave', 'tags']) || '',
-            // 👇 NUEVO: Busca la provincia (Importante para Plaza Cuba Nacional)
+            etiquetas: buscarDato(row, ['etiquetas', 'clave', 'tags']) || '', 
             provincia: buscarDato(row, ['provincia', 'municipio', 'lugar', 'zona']) || 'Todas',
           };
         });
@@ -98,7 +98,7 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
   });
 };
 
-// Cargar Tienda (Productos)
+// Cargar Tienda
 export const fetchProductos = async (nombreNegocio: string): Promise<Producto[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(PRODUCTOS_CSV_URL, {
@@ -110,7 +110,9 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Producto[]>
           nombre: buscarDato(row, ['producto', 'nombre', 'item']) || 'Producto sin nombre',
           precio: parseFloat(buscarDato(row, ['precio', 'costo']) || '0'),
           foto: buscarDato(row, ['foto', 'imagen']) || '',
-          categoria: buscarDato(row, ['categoria', 'tipo']) || 'General'
+          categoria: buscarDato(row, ['categoria', 'tipo']) || 'General',
+          // 👇 NUEVO: Busca la descripción del producto/servicio
+          descripcion: buscarDato(row, ['descripcion', 'detalles', 'info', 'caracteristicas']) || '', 
         }));
         const productosDelNegocio = todosLosProductos.filter(p => 
           p.negocio.trim().toLowerCase() === nombreNegocio.trim().toLowerCase()
@@ -122,7 +124,7 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Producto[]>
   });
 };
 
-// Cargar Muro (Anuncios con Moderación)
+// Cargar Muro
 export const fetchAnuncios = async (): Promise<Anuncio[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(MURO_CSV_URL, {
@@ -138,7 +140,6 @@ export const fetchAnuncios = async (): Promise<Anuncio[]> => {
           estado: buscarDato(row, ['estado', 'status', 'control', 'visible']) || 'activo', 
         }));
 
-        // Filtro de Seguridad (Ocultar si en Excel dice "ocultar")
         const anunciosVisibles = anuncios.filter(a => {
           const estado = a.estado.toLowerCase();
           return !estado.includes('ocultar') && !estado.includes('borrar');
