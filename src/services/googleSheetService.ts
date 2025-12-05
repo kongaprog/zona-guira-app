@@ -22,7 +22,7 @@ export interface Producto {
   precio: number;
   foto: string;
   categoria: string;
-  descripcion: string; // 👇 NUEVO: Para el detalle del producto/servicio
+  descripcion: string;
 }
 
 export interface Anuncio {
@@ -37,11 +37,11 @@ export interface Anuncio {
 
 // --- 2. ENLACES A TUS HOJAS DE EXCEL ---
 
-// Link de Negocios
+// Link de Negocios (Mapa)
 const NEGOCIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=874763755&single=true&output=csv';
 
-// Link de Productos
-const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=1126609695&single=true&output=csv'; 
+// 👇👇👇 TU NUEVO LINK DE PRODUCTOS 👇👇👇
+const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=52042393&single=true&output=csv'; 
 
 // Link del Muro
 const MURO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=150919361&single=true&output=csv'; 
@@ -87,7 +87,7 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
             ubicacion: limpiarCoordenadas(rawUbicacion),
             foto: buscarDato(row, ['foto', 'imagen']) || '',
             web: buscarDato(row, ['enlaces', 'web', 'facebook', 'grupo', 'redes']) || '', 
-            etiquetas: buscarDato(row, ['etiquetas', 'clave', 'tags']) || '', 
+            etiquetas: buscarDato(row, ['etiquetas', 'clave', 'tags']) || '',
             provincia: buscarDato(row, ['provincia', 'municipio', 'lugar', 'zona']) || 'Todas',
           };
         });
@@ -98,7 +98,7 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
   });
 };
 
-// Cargar Tienda
+// Cargar Tienda (Productos)
 export const fetchProductos = async (nombreNegocio: string): Promise<Producto[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(PRODUCTOS_CSV_URL, {
@@ -111,12 +111,14 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Producto[]>
           precio: parseFloat(buscarDato(row, ['precio', 'costo']) || '0'),
           foto: buscarDato(row, ['foto', 'imagen']) || '',
           categoria: buscarDato(row, ['categoria', 'tipo']) || 'General',
-          // 👇 NUEVO: Busca la descripción del producto/servicio
           descripcion: buscarDato(row, ['descripcion', 'detalles', 'info', 'caracteristicas']) || '', 
         }));
+        
+        // Filtramos para devolver solo los de la tienda actual
         const productosDelNegocio = todosLosProductos.filter(p => 
           p.negocio.trim().toLowerCase() === nombreNegocio.trim().toLowerCase()
         );
+        
         resolve(productosDelNegocio);
       },
       error: (error) => reject(error),
