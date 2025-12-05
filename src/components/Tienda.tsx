@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchProductos } from '../services/googleSheetService';
 
-// Definición local de Producto
 interface Producto {
   id: string;
   negocio: string;
@@ -9,7 +8,7 @@ interface Producto {
   precio: number;
   foto: string;
   categoria: string;
-  descripcion: string; // 👇 NUEVO
+  descripcion: string;
 }
 
 interface Props {
@@ -42,23 +41,27 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
     setCarrito([...carrito, producto]);
   };
 
+  // 👇 FUNCIÓN NUEVA: Borrar todo
+  const limpiarCarrito = () => {
+    if (window.confirm("¿Vaciar el carrito?")) {
+      setCarrito([]);
+    }
+  };
+
   const total = carrito.reduce((suma, item) => suma + item.precio, 0);
 
   const generarPedido = () => {
     if (carrito.length === 0) return;
-    
     const resumen = carrito.reduce((acc, item) => {
       acc[item.nombre] = (acc[item.nombre] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    let mensaje = `Hola *${nombreNegocio}*, ${esModoServicio ? 'me interesa agendar estos servicios' : 'quisiera hacer un pedido'}: \n\n`;
-    
+    let mensaje = `Hola *${nombreNegocio}*, ${esModoServicio ? 'me interesa agendar:' : 'quisiera pedir:'}: \n\n`;
     Object.entries(resumen).forEach(([nombre, cantidad]) => {
       mensaje += `▪️ ${cantidad}x ${nombre}\n`;
     });
-    mensaje += `\n💰 *Total Estimado: $${total} CUP*`;
-    
+    mensaje += `\n💰 *Total: $${total} CUP*`;
     const link = `https://wa.me/53${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
     window.open(link, '_blank');
   };
@@ -72,63 +75,44 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
         <div>
           <h2 style={{ margin: 0, fontSize: "1.2rem", color: "#1e293b" }}>{nombreNegocio}</h2>
           <p style={{ margin: 0, fontSize: "0.85rem", color: esModoServicio ? "#7e22ce" : "#2563eb", fontWeight: "bold" }}>
-            {esModoServicio ? '📋 Lista de Precios y Servicios' : '🛍️ Catálogo de Productos'}
+            {esModoServicio ? '📋 Servicios Disponibles' : '🛍️ Catálogo de Productos'}
           </p>
         </div>
       </div>
 
-      {/* Contenido */}
+      {/* Lista Productos */}
       {loading ? (
         <div style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>Cargando...</div>
       ) : productos.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px", backgroundColor: "#f1f5f9", borderRadius: "10px" }}>
           <div style={{ fontSize: "2rem", marginBottom: "10px" }}>📭</div>
-          <p>{esModoServicio ? 'No hay servicios publicados.' : 'Catálogo vacío.'}</p>
+          <p>No hay elementos disponibles.</p>
         </div>
       ) : (
         <div style={{ display: "grid", gap: "12px" }}>
           {productos.map((prod) => (
-            <div key={prod.id} style={{ 
-              display: "flex", justifyContent: "space-between", alignItems: "center", 
-              backgroundColor: "white", padding: "12px 15px", borderRadius: "10px", 
-              boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #f1f5f9"
-            }}>
-              
+            <div key={prod.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white", padding: "12px 15px", borderRadius: "10px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #f1f5f9" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "15px", flex: 1 }}>
                 
+                {/* FOTO con política de seguridad */}
                 {!esModoServicio && (
                   prod.foto ? (
-                    <img src={prod.foto} alt={prod.nombre} style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "8px" }} onError={(e) => {e.currentTarget.style.display='none'}} />
-                  ) : (
-                    <span style={{ fontSize: "1.8rem" }}>📦</span>
-                  )
+                    <img src={prod.foto} alt={prod.nombre} referrerPolicy="no-referrer" style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "8px" }} onError={(e) => {e.currentTarget.style.display='none'}} />
+                  ) : <span style={{ fontSize: "1.8rem" }}>📦</span>
                 )}
                 
                 {esModoServicio && prod.foto && (
-                   <img src={prod.foto} alt={prod.nombre} style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "50%" }} />
+                   <img src={prod.foto} alt={prod.nombre} referrerPolicy="no-referrer" style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "50%" }} />
                 )}
 
                 <div>
                   <h4 style={{ margin: "0 0 2px 0", color: "#334155", fontSize: "0.95rem" }}>{prod.nombre}</h4>
-                  
-                  {/* 👇 NUEVO: Descripción del producto/servicio */}
-                  {prod.descripcion && (
-                    <p style={{ margin: "0 0 4px 0", color: "#64748b", fontSize: "0.75rem", lineHeight: "1.3" }}>{prod.descripcion}</p>
-                  )}
-
+                  {prod.descripcion && <p style={{ margin: "0 0 4px 0", color: "#64748b", fontSize: "0.75rem", lineHeight: "1.3" }}>{prod.descripcion}</p>}
                   <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "0.9rem" }}>${prod.precio}</span>
                 </div>
               </div>
 
-              <button 
-                onClick={() => agregar(prod)}
-                style={{ 
-                  backgroundColor: esModoServicio ? "#f3e8ff" : "#eff6ff", 
-                  color: esModoServicio ? "#7e22ce" : "#2563eb", 
-                  border: "none", padding: "8px 12px", borderRadius: "8px", 
-                  fontSize: "0.8rem", cursor: "pointer", fontWeight: "bold", whiteSpace: "nowrap" 
-                }}
-              >
+              <button onClick={() => agregar(prod)} style={{ backgroundColor: esModoServicio ? "#f3e8ff" : "#eff6ff", color: esModoServicio ? "#7e22ce" : "#2563eb", border: "none", padding: "8px 12px", borderRadius: "8px", fontSize: "0.8rem", cursor: "pointer", fontWeight: "bold", whiteSpace: "nowrap" }}>
                 {esModoServicio ? 'Agendar +' : 'Agregar +'}
               </button>
             </div>
@@ -136,16 +120,30 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
         </div>
       )}
 
-      {/* Carrito Flotante */}
+      {/* 👇 CARRITO CON BOTÓN DE BORRAR */}
       {carrito.length > 0 && (
-        <div style={{ position: "fixed", bottom: "20px", left: "20px", right: "20px", backgroundColor: "#1e293b", color: "white", padding: "15px 20px", borderRadius: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.2)", zIndex: 3000 }}>
+        <div style={{ position: "fixed", bottom: "20px", left: "20px", right: "20px", backgroundColor: "#1e293b", color: "white", padding: "12px 20px", borderRadius: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.3)", zIndex: 3000 }}>
+          
           <div>
             <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{carrito.length} {esModoServicio ? 'servicios' : 'ítems'}</div>
             <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>${total} CUP</div>
           </div>
-          <button onClick={generarPedido} style={{ backgroundColor: "#22c55e", color: "white", border: "none", padding: "10px 20px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer" }}>
-            {esModoServicio ? 'Solicitar Cita →' : 'Hacer Pedido →'}
-          </button>
+
+          <div style={{ display: "flex", gap: "10px" }}>
+            {/* BOTÓN BASURA */}
+            <button 
+              onClick={limpiarCarrito}
+              style={{ backgroundColor: "#dc2626", color: "white", border: "none", width: "40px", height: "40px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}
+            >
+              🗑️
+            </button>
+
+            {/* BOTÓN PEDIR */}
+            <button onClick={generarPedido} style={{ backgroundColor: "#22c55e", color: "white", border: "none", padding: "0 20px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer" }}>
+              {esModoServicio ? 'Pedir Cita' : 'Pedir'}
+            </button>
+          </div>
+
         </div>
       )}
     </div>
