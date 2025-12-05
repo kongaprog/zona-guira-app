@@ -37,17 +37,28 @@ export interface Anuncio {
 
 // --- 2. ENLACES A TUS HOJAS DE EXCEL ---
 
-// Link de Negocios (Mapa)
+// Link de Negocios
 const NEGOCIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=874763755&single=true&output=csv';
 
-// 👇👇👇 TU NUEVO LINK DE PRODUCTOS 👇👇👇
-const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=52042393&single=true&output=csv'; 
+// Link de Productos
+const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=1126609695&single=true&output=csv'; 
 
 // Link del Muro
 const MURO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=150919361&single=true&output=csv'; 
 
 
 // --- 3. FUNCIONES DE AYUDA ---
+
+// Convierte enlaces de Drive en imágenes visibles
+const procesarFoto = (rawUrl: string): string => {
+  if (!rawUrl) return '';
+  const url = rawUrl.split(',')[0].trim();
+  if (url.includes('drive.google.com')) {
+    if (url.includes('open?id=')) return url.replace('open?id=', 'uc?export=view&id=');
+    if (url.includes('/file/d/')) return url.replace('/view?usp=sharing', '').replace('/view?usp=drivesdk', '').replace('/view', '').replace('/file/d/', '/uc?export=view&id=');
+  }
+  return url;
+};
 
 const limpiarCoordenadas = (input: string): string => {
   if (!input) return '';
@@ -70,7 +81,7 @@ const buscarDato = (row: any, keywords: string[]) => {
 
 // --- 4. FUNCIONES DE CARGA (FETCH) ---
 
-// Cargar Mapa
+// Cargar Mapa (Negocios)
 export const fetchNegocios = async (): Promise<Negocio[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(NEGOCIOS_CSV_URL, {
@@ -85,7 +96,10 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
             categoria: buscarDato(row, ['categoría', 'categoria']) || 'Varios',
             descripcion: buscarDato(row, ['descripción', 'descripcion']) || '',
             ubicacion: limpiarCoordenadas(rawUbicacion),
-            foto: buscarDato(row, ['foto', 'imagen']) || '',
+            
+            // 👇 PROCESAMOS LA FOTO AQUÍ
+            foto: procesarFoto(buscarDato(row, ['foto', 'imagen']) || ''),
+            
             web: buscarDato(row, ['enlaces', 'web', 'facebook', 'grupo', 'redes']) || '', 
             etiquetas: buscarDato(row, ['etiquetas', 'clave', 'tags']) || '',
             provincia: buscarDato(row, ['provincia', 'municipio', 'lugar', 'zona']) || 'Todas',
@@ -109,12 +123,14 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Producto[]>
           negocio: buscarDato(row, ['negocio', 'tienda']) || '',
           nombre: buscarDato(row, ['producto', 'nombre', 'item']) || 'Producto sin nombre',
           precio: parseFloat(buscarDato(row, ['precio', 'costo']) || '0'),
-          foto: buscarDato(row, ['foto', 'imagen']) || '',
+          
+          // 👇 PROCESAMOS LA FOTO AQUÍ TAMBIÉN
+          foto: procesarFoto(buscarDato(row, ['foto', 'imagen']) || ''),
+          
           categoria: buscarDato(row, ['categoria', 'tipo']) || 'General',
           descripcion: buscarDato(row, ['descripcion', 'detalles', 'info', 'caracteristicas']) || '', 
         }));
         
-        // Filtramos para devolver solo los de la tienda actual
         const productosDelNegocio = todosLosProductos.filter(p => 
           p.negocio.trim().toLowerCase() === nombreNegocio.trim().toLowerCase()
         );
