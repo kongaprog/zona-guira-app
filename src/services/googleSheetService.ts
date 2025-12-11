@@ -1,25 +1,23 @@
 import Papa from 'papaparse';
-// 1. Importamos VALORES (Constantes)
 import { ProductCondition, PartType } from '../types'; 
-// 2. Importamos TIPOS (Interfaces)
 import type { Negocio, Product, Anuncio } from '../types';
 
-// --- ENLACES ---
 const NEGOCIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=874763755&single=true&output=csv';
 const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=52042393&single=true&output=csv'; 
 const MURO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=150919361&single=true&output=csv'; 
 
-// --- FUNCIONES DE AYUDA ---
+// --- FUNCIÓN DE FOTO BLINDADA V2 (LH3 Universal) ---
 const procesarFoto = (rawUrl: string): string => {
   if (!rawUrl || typeof rawUrl !== 'string') return '';
   
   let url = rawUrl.trim();
   
-  // Si es un enlace de Google Drive, extraemos el ID
+  // Extraer ID de Drive
   if (url.includes('drive.google') || url.includes('googleusercontent')) {
+    // Busca el ID (cadena larga entre slashes o después de id=)
     const idMatch = url.match(/[-\w]{25,}/);
     if (idMatch) {
-      // Usamos lh3 para máxima velocidad y compatibilidad
+      // ESTE FORMATO ES EL MÁS COMPATIBLE EN MÓVILES
       return `https://lh3.googleusercontent.com/d/${idMatch[0]}=s1000?authuser=0`;
     }
   }
@@ -42,7 +40,6 @@ const buscarDato = (row: any, keywords: string[]) => {
   return keyEncontrada ? row[keyEncontrada] : '';
 };
 
-// --- FETCH NEGOCIOS ---
 export const fetchNegocios = async (): Promise<Negocio[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(NEGOCIOS_CSV_URL, {
@@ -67,7 +64,6 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
   });
 };
 
-// --- FETCH PRODUCTOS ---
 export const fetchProductos = async (nombreNegocio: string): Promise<Product[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(PRODUCTOS_CSV_URL, {
@@ -83,8 +79,7 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Product[]> 
                 condition: ProductCondition.NEW,
                 pricePartOnly: precio,
                 priceInstalled: 0,
-                // 👇 ESTA LÍNEA ES LA CLAVE: Asignamos a 'foto'
-                foto: procesarFoto(buscarDato(row, ['foto', 'imagen'])),
+                foto: procesarFoto(buscarDato(row, ['foto', 'imagen'])), // Aseguramos usar 'foto'
                 partType: PartType.OTHER,
                 inStock: true,
                 negocio: buscarDato(row, ['negocio', 'tienda']) || ''
@@ -97,7 +92,6 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Product[]> 
   });
 };
 
-// --- FETCH ANUNCIOS ---
 export const fetchAnuncios = async (): Promise<Anuncio[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(MURO_CSV_URL, {
