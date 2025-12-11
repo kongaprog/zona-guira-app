@@ -1,4 +1,6 @@
-// --- CONSTANTES (Reemplazo de Enums) ---
+// --- 1. CONSTANTES (Valores Reales) ---
+// Usamos 'const' para que existan en el código final y no den error de importación.
+
 export const ProductCondition = {
   NEW: 'Nuevo',
   USED: 'De Uso'
@@ -22,7 +24,7 @@ export const PartType = {
 } as const;
 export type PartType = typeof PartType[keyof typeof PartType];
 
-// --- INTERFACES PRINCIPALES ---
+// --- 2. INTERFACES (Tipos) ---
 
 export interface Negocio {
   id: string;
@@ -45,6 +47,7 @@ export interface Anuncio {
   tipo: string;
   nombre: string;
   estado: string;
+  foto?: string;
 }
 
 export interface Product {
@@ -58,8 +61,8 @@ export interface Product {
   imageUrl: string;
   inStock: boolean;
   deviceType?: DeviceType;
-  partType?: string;
-  negocio?: string; // Campo opcional para vincular producto con negocio
+  partType?: string; 
+  negocio?: string;
 }
 
 export interface CartItem {

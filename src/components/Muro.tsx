@@ -1,38 +1,24 @@
 import { useState, useEffect } from 'react';
 import { fetchAnuncios } from '../services/googleSheetService';
-
-// Definición Local
-interface Anuncio {
-  id: string;
-  fecha: string;
-  texto: string;
-  contacto: string;
-  tipo: string;
-  nombre: string;
-  estado: string;
-}
+import type { Anuncio } from '../types';
+import { MessageCircle, Clock, Megaphone, CheckCircle2 } from 'lucide-react';
 
 export const Muro = () => {
   const [todosLosAnuncios, setTodosLosAnuncios] = useState<Anuncio[]>([]);
   const [anunciosFiltrados, setAnunciosFiltrados] = useState<Anuncio[]>([]);
   const [loading, setLoading] = useState(true);
-  
   const [filtroActivo, setFiltroActivo] = useState("Todos");
 
-  // 👇 AQUÍ ESTÁ TU NUEVO ENLACE AL FORMULARIO
   const LINK_PUBLICAR = "https://docs.google.com/forms/d/e/1FAIpQLSfHqC6Cbq4mTLGt0CyO_qgEHQUf1HeBDIbw9sgcvbJNzWqgtA/viewform?usp=header"; 
 
   useEffect(() => {
     fetchAnuncios().then((data) => {
-      // Truco de TypeScript
-      const datosLimpios = data as unknown as Anuncio[];
-      setTodosLosAnuncios(datosLimpios);
-      setAnunciosFiltrados(datosLimpios);
+      setTodosLosAnuncios(data);
+      setAnunciosFiltrados(data);
       setLoading(false);
     });
   }, []);
 
-  // Lógica de Filtrado
   useEffect(() => {
     if (filtroActivo === "Todos") {
       setAnunciosFiltrados(todosLosAnuncios);
@@ -43,88 +29,119 @@ export const Muro = () => {
     }
   }, [filtroActivo, todosLosAnuncios]);
 
-  const getColorTipo = (tipo: string) => {
+  // Estilos de Etiquetas
+  const getEstiloTipo = (tipo: string) => {
     const t = (tipo || "").toLowerCase();
-    if (t.includes('venta')) return { bg: '#dcfce7', text: '#166534' }; 
-    if (t.includes('compra')) return { bg: '#dbeafe', text: '#1e40af' }; 
-    if (t.includes('cambio')) return { bg: '#f3e8ff', text: '#6b21a8' }; 
-    if (t.includes('divisa') || t.includes('usd')) return { bg: '#ffedd5', text: '#9a3412' }; 
-    return { bg: '#f1f5f9', text: '#475569' }; 
+    if (t.includes('venta')) return { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'VENTA' }; 
+    if (t.includes('compra')) return { bg: 'bg-blue-50 text-blue-700 border-blue-200', label: 'COMPRA' }; 
+    if (t.includes('cambio')) return { bg: 'bg-purple-50 text-purple-700 border-purple-200', label: 'CAMBIO' }; 
+    if (t.includes('divisa')) return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: 'DIVISAS' }; 
+    return { bg: 'bg-slate-50 text-slate-700 border-slate-200', label: 'VARIOS' }; 
   };
 
   const BOTONES_MURO = ["Todos", "Venta", "Compra", "Cambio", "Divisas", "Otro"];
 
   return (
-    <div style={{ paddingBottom: "80px" }}>
+    <div className="pb-24 min-h-screen bg-slate-50 font-sans">
       
-      {/* CABECERA */}
-      <div style={{ backgroundColor: "white", padding: "20px", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 10 }}>
-        <h2 style={{ margin: "0 0 5px 0", fontSize: "1.5rem", color: "#0f172a" }}>El Muro 📢</h2>
-        <p style={{ margin: 0, fontSize: "0.9rem", color: "#64748b" }}>Anuncios flash de 24h.</p>
-        
-        {/* BOTONES DE FILTRO */}
-        <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "5px", marginTop: "15px", scrollbarWidth: "none" }}>
-          {BOTONES_MURO.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setFiltroActivo(cat)}
-              style={{
-                padding: "6px 12px", borderRadius: "15px", border: "1px solid #cbd5e1", 
-                whiteSpace: "nowrap", cursor: "pointer", fontWeight: "bold", fontSize: "0.85rem",
-                backgroundColor: filtroActivo === cat ? "#0f172a" : "white",
-                color: filtroActivo === cat ? "white" : "#475569"
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+      {/* HEADER */}
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-xl mx-auto px-4 py-3">
+          <div className="flex justify-between items-center mb-3">
+            <div>
+              <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                EL MURO <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">En Vivo</span>
+              </h2>
+            </div>
+            <a href={LINK_PUBLICAR} target="_blank" className="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-xs shadow hover:bg-black transition-colors flex items-center gap-2">
+              <Megaphone size={14} /> Publicar
+            </a>
+          </div>
 
-        {/* BOTÓN DE PUBLICAR */}
-        <a 
-          href={LINK_PUBLICAR} 
-          target="_blank"
-          style={{ 
-            display: "block", marginTop: "15px", backgroundColor: "#ef4444", color: "white", 
-            textAlign: "center", padding: "12px", borderRadius: "10px", textDecoration: "none", fontWeight: "bold", fontSize: "1rem", boxShadow: "0 4px 10px rgba(239,68,68,0.3)"
-          }}
-        >
-          ✍️ Publicar Anuncio
-        </a>
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {BOTONES_MURO.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setFiltroActivo(cat)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                  filtroActivo === cat 
+                    ? "bg-slate-800 text-white border-slate-800" 
+                    : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* LISTA DE ANUNCIOS */}
-      <div style={{ padding: "15px", display: "flex", flexDirection: "column", gap: "15px" }}>
-        
+      {/* FEED */}
+      <div className="max-w-xl mx-auto p-4 flex flex-col gap-4">
         {loading ? (
-          <div style={{ textAlign: "center", padding: "20px", color: "#64748b" }}>Cargando anuncios...</div>
+          <div className="text-center py-20 text-slate-400">Cargando anuncios...</div>
         ) : anunciosFiltrados.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>
-            <div style={{ fontSize: "2rem" }}>📭</div>
-            <p>No hay anuncios de "{filtroActivo}" por ahora.</p>
+          <div className="text-center py-20 opacity-50">
+            <p>No hay anuncios de "{filtroActivo}"</p>
           </div>
         ) : (
           anunciosFiltrados.map((anuncio) => {
-            const estilo = getColorTipo(anuncio.tipo);
+            const estilo = getEstiloTipo(anuncio.tipo);
+            const inicial = anuncio.nombre ? anuncio.nombre.charAt(0).toUpperCase() : "U";
+            
             return (
-              <div key={anuncio.id} style={{ backgroundColor: "white", padding: "15px", borderRadius: "12px", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
-                  <span style={{ fontWeight: "bold", color: "#334155" }}>{anuncio.nombre}</span>
-                  <span style={{ backgroundColor: estilo.bg, color: estilo.text, padding: "2px 8px", borderRadius: "10px", fontSize: "0.75rem", fontWeight: "bold", textTransform: "uppercase" }}>
-                    {anuncio.tipo}
+              <div key={anuncio.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                
+                {/* Header Tarjeta */}
+                <div className="p-4 pb-2 flex justify-between items-start">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-bold text-xs border border-slate-200">
+                      {inicial}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-sm leading-none">{anuncio.nombre}</h3>
+                      <div className="flex items-center gap-1 text-[10px] text-slate-400 mt-1">
+                        <Clock size={10} /> {anuncio.fecha}
+                      </div>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${estilo.bg}`}>
+                    {estilo.label}
                   </span>
                 </div>
-                <p style={{ margin: "0 0 15px 0", fontSize: "1rem", lineHeight: "1.5", color: "#1e293b" }}>{anuncio.texto}</p>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                   <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>{anuncio.fecha}</span>
-                   <a 
-                     href={`https://wa.me/53${anuncio.contacto}?text=Hola, vi tu anuncio en el Muro: ${anuncio.texto.substring(0, 15)}...`}
-                     target="_blank"
-                     style={{ backgroundColor: "#22c55e", color: "white", padding: "6px 12px", borderRadius: "20px", textDecoration: "none", fontSize: "0.85rem", fontWeight: "bold" }}
-                   >
-                     💬 Contactar
-                   </a>
+
+                {/* Texto */}
+                <div className="px-4 py-2">
+                  <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+                    {anuncio.texto}
+                  </p>
                 </div>
+
+                {/* Foto (Si hay) */}
+                {anuncio.foto && (
+                  <div className="px-4 pb-2">
+                    <img 
+                      src={anuncio.foto} 
+                      className="w-full h-auto max-h-80 object-cover rounded-lg border border-slate-100"
+                      loading="lazy" 
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {e.currentTarget.style.display = 'none'}}
+                    />
+                  </div>
+                )}
+
+                {/* Footer Botón */}
+                <div className="px-4 pb-4 pt-2">
+                  <a 
+                    href={`https://wa.me/53${anuncio.contacto}?text=Hola, vi tu anuncio en el Muro: ${anuncio.texto.substring(0, 15)}...`} 
+                    target="_blank"
+                    className="w-full bg-slate-50 hover:bg-green-50 text-slate-600 hover:text-green-700 border border-slate-200 hover:border-green-200 py-2.5 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all"
+                  >
+                    <MessageCircle size={16} className="text-green-600" />
+                    Contactar por WhatsApp
+                  </a>
+                </div>
+
               </div>
             );
           })

@@ -14,6 +14,14 @@ interface Negocio {
   etiquetas?: string;
 }
 
+// 👇 1. DEFINIMOS EL CERCO DIGITAL (La Caja de Cuba)
+// Formato: [[Lat Sur, Lon Oeste], [Lat Norte, Lon Este]]
+const CUBA_BOUNDS: L.LatLngBoundsExpression = [
+  [19.00, -85.50], // Esquina Abajo-Izquierda (Mar al sur de Pinar)
+  [24.00, -73.50]  // Esquina Arriba-Derecha (Mar al norte de Oriente)
+];
+
+// Centro inicial
 const CENTER_CUBA: [number, number] = [21.9324, -79.4589]; 
 
 interface Props {
@@ -25,80 +33,55 @@ export const Mapa = ({ negocios, alSeleccionar }: Props) => {
   
   const obtenerEmoji = (negocio: Negocio) => {
     const texto = (negocio.categoria + " " + (negocio.etiquetas || "") + " " + negocio.nombre).toLowerCase();
-
-    if (texto.match(/celular|movil|iphone|android|samsung|xiaomi/)) return "📱";
-    if (texto.match(/laptop|pc|computadora|ordenador|tecnologia|software/)) return "💻";
-    if (texto.match(/reparacion|tecnico|taller|mecanic/)) return "🛠️";
-    if (texto.match(/redes|wifi|internet/)) return "📡";
-    if (texto.match(/pizza/)) return "🍕";
-    if (texto.match(/burger|hamburguesa/)) return "🍔";
-    if (texto.match(/cafe|cafeteria/)) return "☕";
-    if (texto.match(/restaurante|paladar|comida|asado/)) return "🍽️";
-    if (texto.match(/barber|pelo|cabello/)) return "💈";
-    if (texto.match(/uñas|manicure|cejas|pestañas/)) return "💅";
-    if (texto.match(/farmacia|medico|salud|clinica/)) return "⚕️";
-    if (texto.match(/taxi|botero/)) return "🚖";
-    if (texto.match(/moto|motorina/)) return "🛵";
-    if (texto.match(/casa|alquiler|renta|hostal/)) return "🏠";
-    if (texto.match(/ropa|moda|vestido/)) return "👗";
-    if (texto.match(/fiesta|evento|decoracion/)) return "🎈";
-
+    if (texto.match(/celular|movil|iphone|android|tecno/)) return "📱";
+    if (texto.match(/laptop|pc|computadora|ordenador/)) return "💻";
+    if (texto.match(/taller|reparacion|mecanic/)) return "🛠️";
+    if (texto.match(/pizza|burger|comida|cafe|restaurante/)) return "🍔";
+    if (texto.match(/barber|pelo|uñas|salud|farmacia/)) return "💈";
+    if (texto.match(/taxi|moto|carro|transporte/)) return "🚖";
+    if (texto.match(/casa|alquiler|hostal/)) return "🏠";
+    if (texto.match(/ropa|zapato|tienda/)) return "🛍️";
     return "📍"; 
   };
 
-  // 🎨 DISEÑO DE MARCADOR "SOFT DARK" (Integrado y Elegante)
   const crearIconoEmoji = (emoji: string) => {
     return L.divIcon({
       className: 'custom-pin',
       html: `
         <div style="
-          background: linear-gradient(145deg, #1e293b, #0f172a); /* Degradado suave oscuro */
+          background-color: #0f172a;
+          color: white;
           border-radius: 50%; 
-          width: 40px; 
-          height: 40px; 
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          font-size: 20px; 
-          box-shadow: 5px 5px 10px rgba(0,0,0,0.5), -2px -2px 5px rgba(255,255,255,0.05); /* Sombra suave realista */
-          border: 1px solid #334155; /* Borde gris sutil, nada de neón */
-          position: relative;
+          width: 36px; height: 36px; 
+          display: flex; align-items: center; justify-content: center; 
+          font-size: 18px; 
+          box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+          border: 2px solid #38bdf8;
         ">
           ${emoji}
-          
-          <div style="
-            position: absolute; 
-            bottom: -4px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 8px; 
-            height: 8px; 
-            background-color: #0f172a;
-            border-bottom: 1px solid #334155;
-            border-right: 1px solid #334155;
-            transform: translateX(-50%) rotate(45deg);
-          "></div>
         </div>
       `,
-      iconSize: [40, 40],
-      iconAnchor: [20, 45], 
-      popupAnchor: [0, -45] 
+      iconSize: [36, 36],
+      iconAnchor: [18, 18], 
+      popupAnchor: [0, -25] 
     });
   };
 
-  if (!negocios) return <div style={{ padding: "40px", textAlign: "center", color: "#64748b" }}>Cargando mapa...</div>;
+  if (!negocios) return <div style={{ padding: "40px", textAlign: "center" }}>Cargando...</div>;
 
   return (
-    // Contenedor del mapa con bordes suaves
-    <div style={{ height: "70vh", width: "100%", borderRadius: "16px", overflow: "hidden", border: "1px solid #334155", position: "relative", zIndex: 1, boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)" }}>
+    <div className="h-[70vh] w-full rounded-2xl overflow-hidden border border-slate-700 shadow-2xl relative z-10 bg-slate-900">
       <MapContainer 
-        key="mapa-cuba-detailed" 
+        key="mapa-cuba-limitado" 
         center={CENTER_CUBA} 
         zoom={6} 
-        style={{ height: "100%", width: "100%", background: "#1e293b" }}
+        // 👇 AQUÍ ESTÁ LA MAGIA DE LOS LÍMITES
+        minZoom={6}                 // No pueden alejar más que esto (para ver solo la isla)
+        maxBounds={CUBA_BOUNDS}     // La pared invisible
+        maxBoundsViscosity={1.0}    // 1.0 significa "Muro Sólido" (no se puede arrastrar fuera ni un poquito)
+        style={{ height: "100%", width: "100%" }}
         zoomControl={false} 
       >
-        {/* 👇 USAMOS EL MAPA ORIGINAL (DETALLADO) + FILTRO CSS */}
         <TileLayer 
           attribution=''
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
@@ -109,59 +92,40 @@ export const Mapa = ({ negocios, alSeleccionar }: Props) => {
           const [lat, lng] = negocio.ubicacion.split(',').map(c => parseFloat(c.trim()));
           if (isNaN(lat) || isNaN(lng)) return null;
 
-          const emoji = obtenerEmoji(negocio);
-
           return (
-            <Marker key={negocio.id} position={[lat, lng]} icon={crearIconoEmoji(emoji)}>
+            <Marker key={negocio.id} position={[lat, lng]} icon={crearIconoEmoji(obtenerEmoji(negocio))}>
               <Popup>
-                {/* FICHA MINIATURA (Estilo Tarjeta de Presentación Oscura) */}
-                <div style={{ width: "220px", fontFamily: "'Inter', sans-serif", backgroundColor: "#1e293b" }}>
+                {/* FICHA FLOTANTE PREMIUM */}
+                <div className="w-[240px] bg-slate-900/95 backdrop-blur-md text-white rounded-2xl overflow-hidden shadow-2xl border border-slate-700 font-sans">
                   
-                  {/* FOTO */}
-                  <div style={{ width: "calc(100% + 2px)", margin: "-1px -1px 0 -1px", height: "110px", borderRadius: "12px 12px 0 0", overflow: "hidden", backgroundColor: "#0f172a", position: "relative" }}>
+                  {/* Foto Panorámica */}
+                  <div className="h-28 w-full relative bg-slate-800">
                     <img 
                       src={negocio.foto} 
                       alt={negocio.nombre} 
                       referrerPolicy="no-referrer"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} 
-                      onError={(e) => {e.currentTarget.src = 'https://via.placeholder.com/220x110?text=Sin+Foto'}}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {e.currentTarget.src = 'https://via.placeholder.com/240x120?text=Sin+Foto'}}
                     />
-                    <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #1e293b 0%, transparent 50%)" }}></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+                    
+                    <span className="absolute bottom-2 left-3 bg-blue-600 text-[10px] font-bold px-2 py-0.5 rounded shadow-lg uppercase tracking-wide">
+                      {negocio.categoria}
+                    </span>
                   </div>
                   
-                  {/* INFO */}
-                  <div style={{ padding: "12px" }}>
-                    <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "4px"}}>
-                       <h3 style={{ margin: 0, fontSize: "15px", fontWeight: "700", color: "#f8fafc", lineHeight: "1.2", flex: 1 }}>{negocio.nombre}</h3>
-                       <span style={{ fontSize: "10px", backgroundColor: "#334155", color: "#cbd5e1", padding: "2px 6px", borderRadius: "4px", marginLeft: "8px" }}>
-                         {negocio.categoria.substring(0, 8)}..
-                       </span>
-                    </div>
-                    
-                    <div style={{ display: "flex", alignItems: "center", gap: "5px", marginBottom: "12px", color: "#94a3b8", fontSize: "11px" }}>
-                      <span>📍</span>
-                      <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "180px" }}>
-                        {negocio.ubicacion.split(',')[0]}
-                      </span>
-                    </div>
+                  {/* Info */}
+                  <div className="p-3">
+                    <h3 className="font-bold text-base mb-1 leading-tight">{negocio.nombre}</h3>
+                    <p className="text-slate-400 text-xs flex items-center gap-1 mb-3 truncate">
+                      📍 {negocio.ubicacion.split(',')[0]}
+                    </p>
                     
                     <button 
                       onClick={() => alSeleccionar(negocio)}
-                      style={{ 
-                        width: "100%", 
-                        backgroundColor: "#3b82f6", /* Azul Profesional (Facebook/LinkedIn) en vez de Cian neón */
-                        color: "white", 
-                        border: "none", 
-                        padding: "10px 0", 
-                        borderRadius: "8px", 
-                        cursor: "pointer", 
-                        fontWeight: "600", 
-                        fontSize: "13px",
-                        boxShadow: "0 4px 6px rgba(59, 130, 246, 0.2)",
-                        transition: "background 0.2s"
-                      }}
+                      className="w-full bg-white text-slate-900 py-2 rounded-lg font-bold text-xs hover:bg-slate-200 transition-colors shadow-lg flex items-center justify-center gap-1"
                     >
-                      Entrar
+                      Ver Perfil Completo
                     </button>
                   </div>
                 </div>
