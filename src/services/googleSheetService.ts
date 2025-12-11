@@ -6,25 +6,27 @@ const NEGOCIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4n
 const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=52042393&single=true&output=csv'; 
 const MURO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=150919361&single=true&output=csv'; 
 
-// --- FUNCIÓN DE FOTO BLINDADA V2 (LH3 Universal) ---
+// --- FUNCIÓN DE FOTO "HTTPS" (SEGURA PARA MÓVIL) ---
 const procesarFoto = (rawUrl: string): string => {
   if (!rawUrl || typeof rawUrl !== 'string') return '';
   
   let url = rawUrl.trim();
   
-  // Extraer ID de Drive
+  // Detectamos enlaces de Google Drive
   if (url.includes('drive.google') || url.includes('googleusercontent')) {
-    // Busca el ID (cadena larga entre slashes o después de id=)
+    // 1. Buscamos el ID (cadena larga de letras y números)
     const idMatch = url.match(/[-\w]{25,}/);
     if (idMatch) {
-      // ESTE FORMATO ES EL MÁS COMPATIBLE EN MÓVILES
-      return `https://lh3.googleusercontent.com/d/${idMatch[0]}=s1000?authuser=0`;
+      const id = idMatch[0];
+      // ⚠️ AQUÍ ESTABA EL ERROR: Usamos HTTPS y el servidor lh3 que es CDN directo
+      return `https://lh3.googleusercontent.com/d/${id}=s1000`;
     }
   }
   
   return url;
 };
 
+// ... (Resto de funciones igual que antes) ...
 const limpiarCoordenadas = (input: string): string => {
   if (!input) return '';
   const texto = input.trim();
@@ -79,7 +81,7 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Product[]> 
                 condition: ProductCondition.NEW,
                 pricePartOnly: precio,
                 priceInstalled: 0,
-                foto: procesarFoto(buscarDato(row, ['foto', 'imagen'])), // Aseguramos usar 'foto'
+                foto: procesarFoto(buscarDato(row, ['foto', 'imagen'])),
                 partType: PartType.OTHER,
                 inStock: true,
                 negocio: buscarDato(row, ['negocio', 'tienda']) || ''
