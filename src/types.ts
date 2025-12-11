@@ -1,6 +1,4 @@
 // --- 1. CONSTANTES (Valores Reales) ---
-// Usamos 'const' para que existan en el código final y no den error de importación.
-
 export const ProductCondition = {
   NEW: 'Nuevo',
   USED: 'De Uso'
@@ -58,7 +56,8 @@ export interface Product {
   condition: ProductCondition;
   pricePartOnly: number;
   priceInstalled: number;
-  imageUrl: string;
+  // 👇 CAMBIO IMPORTANTE: Antes era 'imageUrl', ahora es 'foto'
+  foto: string; 
   inStock: boolean;
   deviceType?: DeviceType;
   partType?: string; 

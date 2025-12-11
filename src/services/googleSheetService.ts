@@ -1,23 +1,25 @@
 import Papa from 'papaparse';
+// 1. Importamos VALORES (Constantes)
 import { ProductCondition, PartType } from '../types'; 
+// 2. Importamos TIPOS (Interfaces)
 import type { Negocio, Product, Anuncio } from '../types';
 
+// --- ENLACES ---
 const NEGOCIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=874763755&single=true&output=csv';
 const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=52042393&single=true&output=csv'; 
 const MURO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=150919361&single=true&output=csv'; 
 
-// --- FUNCIÓN DE FOTO BLINDADA 🛡️ ---
+// --- FUNCIONES DE AYUDA ---
 const procesarFoto = (rawUrl: string): string => {
   if (!rawUrl || typeof rawUrl !== 'string') return '';
   
   let url = rawUrl.trim();
   
-  // Si es un enlace de Google Drive, extraemos el ID con fuerza bruta
+  // Si es un enlace de Google Drive, extraemos el ID
   if (url.includes('drive.google') || url.includes('googleusercontent')) {
-    // Busca cualquier cadena larga de caracteres que parezca una ID
     const idMatch = url.match(/[-\w]{25,}/);
     if (idMatch) {
-      // Usamos el servidor lh3 que es el más rápido para imágenes
+      // Usamos lh3 para máxima velocidad y compatibilidad
       return `https://lh3.googleusercontent.com/d/${idMatch[0]}=s1000?authuser=0`;
     }
   }
@@ -25,11 +27,9 @@ const procesarFoto = (rawUrl: string): string => {
   return url;
 };
 
-// --- LIMPIEZA DE COORDENADAS 📍 ---
 const limpiarCoordenadas = (input: string): string => {
   if (!input) return '';
   const texto = input.trim();
-  // Validamos que parezca una coordenada (número, número)
   if (texto.match(/^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/)) return texto;
   return ''; 
 };
@@ -42,6 +42,7 @@ const buscarDato = (row: any, keywords: string[]) => {
   return keyEncontrada ? row[keyEncontrada] : '';
 };
 
+// --- FETCH NEGOCIOS ---
 export const fetchNegocios = async (): Promise<Negocio[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(NEGOCIOS_CSV_URL, {
@@ -59,7 +60,6 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
           etiquetas: buscarDato(row, ['etiquetas', 'clave']) || '',
           provincia: buscarDato(row, ['provincia', 'municipio']) || 'Todas',
         }));
-        // Filtramos solo los que tienen ubicación válida
         resolve(data.filter((n) => n.ubicacion.includes(',') && n.nombre !== 'Sin Nombre'));
       },
       error: (error) => reject(error),
@@ -67,6 +67,7 @@ export const fetchNegocios = async (): Promise<Negocio[]> => {
   });
 };
 
+// --- FETCH PRODUCTOS ---
 export const fetchProductos = async (nombreNegocio: string): Promise<Product[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(PRODUCTOS_CSV_URL, {
@@ -82,7 +83,8 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Product[]> 
                 condition: ProductCondition.NEW,
                 pricePartOnly: precio,
                 priceInstalled: 0,
-                imageUrl: procesarFoto(buscarDato(row, ['foto', 'imagen'])),
+                // 👇 ESTA LÍNEA ES LA CLAVE: Asignamos a 'foto'
+                foto: procesarFoto(buscarDato(row, ['foto', 'imagen'])),
                 partType: PartType.OTHER,
                 inStock: true,
                 negocio: buscarDato(row, ['negocio', 'tienda']) || ''
@@ -95,6 +97,7 @@ export const fetchProductos = async (nombreNegocio: string): Promise<Product[]> 
   });
 };
 
+// --- FETCH ANUNCIOS ---
 export const fetchAnuncios = async (): Promise<Anuncio[]> => {
   return new Promise((resolve, reject) => {
     Papa.parse(MURO_CSV_URL, {

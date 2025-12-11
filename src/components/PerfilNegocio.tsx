@@ -11,7 +11,6 @@ interface Negocio {
   foto: string;
   web?: string;
   etiquetas?: string;
-  provincia?: string;
 }
 
 interface Props {
@@ -22,7 +21,6 @@ interface Props {
 export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
   const [verTienda, setVerTienda] = useState(false);
 
-  // 🕵️‍♂️ Validar Enlaces
   const esEnlaceValido = (texto?: string) => {
     if (!texto || texto.length < 4) return false;
     const t = texto.toLowerCase();
@@ -30,7 +28,6 @@ export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
   };
   const tieneWebReal = esEnlaceValido(negocio.web);
 
-  // --- LÓGICA DE CATEGORÍAS ---
   const cat = negocio.categoria.toLowerCase();
   const esComida = cat.match(/gastronom|comida|cafe|pan|dulce|restaurante|pizza|hamburguesa/);
   const esComercio = cat.match(/tienda|venta|ropa|celular|tecnologia|mercado|bodega|agro|vianda|regalo|zapato|belleza|salud|farmacia/);
@@ -55,7 +52,6 @@ export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
     );
   }
 
-  // --- ESTILOS EN LÍNEA (Compatible y Seguro) ---
   const estiloBadge = {
     backgroundColor: esComida ? "#fee2e2" : esTransporte ? "#fef9c3" : esVivienda ? "#f3e8ff" : "#e0f2fe",
     color: esComida ? "#991b1b" : esTransporte ? "#854d0e" : esVivienda ? "#6b21a8" : "#0369a1",
@@ -65,7 +61,8 @@ export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
   return (
     <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "white", zIndex: 5000, overflowY: "auto", display: "flex", flexDirection: "column" }}>
       
-      {/* 1. HEADER (FOTO) */}
+      {/* 1. HEADER (FOTO) - Optimizado para Móvil */}
+      {/* min-h-[300px] asegura que en móviles no se vea pequeña */}
       <div style={{ height: "40vh", minHeight: "300px", backgroundColor: "black", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
         
         <button 
@@ -88,6 +85,7 @@ export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
             src={negocio.foto} 
             alt={negocio.nombre} 
             referrerPolicy="no-referrer"
+            // 'w-full h-full' para llenar el contenedor negro
             style={{ width: "100%", height: "100%", objectFit: "contain", zIndex: 10 }} 
             onError={(e) => {e.currentTarget.src = 'https://via.placeholder.com/400x400?text=Sin+Foto'}}
           />
@@ -114,7 +112,7 @@ export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
           </p>
         </div>
 
-        {/* 3. BOTONES DE ACCIÓN */}
+        {/* BOTONES */}
         <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
           
           {tieneWebReal && negocio.web && (
@@ -131,7 +129,7 @@ export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
 
           {tieneListaServicios && (
              <button onClick={() => setVerTienda(true)} style={{ backgroundColor: "#7c3aed", color: "white", border: "none", padding: "18px", borderRadius: "16px", fontWeight: "bold", cursor: "pointer", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", boxShadow: "0 4px 12px rgba(124, 58, 237, 0.3)" }}>
-               {esVivienda ? '🏠 Ver Precios' : '🛠️ Ver Servicios'}
+               {esVivienda ? '🏠 Ver Precios / Fotos' : '🛠️ Ver Servicios'}
              </button>
           )}
 

@@ -41,7 +41,6 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
     setCarrito([...carrito, producto]);
   };
 
-  // 👇 FUNCIÓN NUEVA: Borrar todo
   const limpiarCarrito = () => {
     if (window.confirm("¿Vaciar el carrito?")) {
       setCarrito([]);
@@ -67,52 +66,62 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
   };
 
   return (
-    <div style={{ padding: "20px", paddingBottom: "100px" }}>
+    <div className="p-5 pb-28 font-sans">
       
       {/* Encabezado */}
-      <div style={{ display: "flex", alignItems: "center", marginBottom: "20px", borderBottom: "1px solid #e2e8f0", paddingBottom: "15px" }}>
-        <button onClick={alCerrar} style={{ background: "none", border: "none", fontSize: "1.5rem", cursor: "pointer", marginRight: "15px", color: "#64748b" }}>←</button>
+      <div className="flex items-center mb-6 border-b border-slate-200 pb-4 sticky top-0 bg-[#f8fafc] z-10">
+        <button onClick={alCerrar} className="text-2xl text-slate-500 mr-4 active:scale-90 transition-transform">←</button>
         <div>
-          <h2 style={{ margin: 0, fontSize: "1.2rem", color: "#1e293b" }}>{nombreNegocio}</h2>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: esModoServicio ? "#7e22ce" : "#2563eb", fontWeight: "bold" }}>
-            {esModoServicio ? '📋 Servicios Disponibles' : '🛍️ Catálogo de Productos'}
+          <h2 className="text-xl font-bold text-slate-900 leading-none">{nombreNegocio}</h2>
+          <p className={`text-xs font-bold mt-1 uppercase tracking-wide ${esModoServicio ? "text-purple-600" : "text-blue-600"}`}>
+            {esModoServicio ? '📋 Servicios' : '🛍️ Catálogo'}
           </p>
         </div>
       </div>
 
       {/* Lista Productos */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "40px", color: "#64748b" }}>Cargando...</div>
+        <div className="text-center py-10 text-slate-400">Cargando...</div>
       ) : productos.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "40px", backgroundColor: "#f1f5f9", borderRadius: "10px" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "10px" }}>📭</div>
-          <p>No hay elementos disponibles.</p>
+        <div className="text-center py-10 bg-slate-100 rounded-xl">
+          <div className="text-3xl mb-2">📭</div>
+          <p className="text-slate-500 text-sm">No hay elementos disponibles.</p>
         </div>
       ) : (
-        <div style={{ display: "grid", gap: "12px" }}>
+        <div className="grid gap-3">
           {productos.map((prod) => (
-            <div key={prod.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "white", padding: "12px 15px", borderRadius: "10px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: "1px solid #f1f5f9" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "15px", flex: 1 }}>
+            <div key={prod.id} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-slate-100">
+              <div className="flex items-center gap-4 flex-1 overflow-hidden">
                 
-                {/* FOTO con política de seguridad */}
-                {!esModoServicio && (
-                  prod.foto ? (
-                    <img src={prod.foto} alt={prod.nombre} referrerPolicy="no-referrer" style={{ width: "50px", height: "50px", objectFit: "cover", borderRadius: "8px" }} onError={(e) => {e.currentTarget.style.display='none'}} />
-                  ) : <span style={{ fontSize: "1.8rem" }}>📦</span>
-                )}
-                
-                {esModoServicio && prod.foto && (
-                   <img src={prod.foto} alt={prod.nombre} referrerPolicy="no-referrer" style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "50%" }} />
-                )}
+                {/* FOTO - OPTIMIZADA PARA MÓVIL */}
+                {/* shrink-0 evita que se aplaste. w-16 h-16 le da buen tamaño */}
+                <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-slate-50 border border-slate-100">
+                   {prod.foto ? (
+                     <img 
+                        src={prod.foto} 
+                        alt={prod.nombre} 
+                        referrerPolicy="no-referrer" 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => {e.currentTarget.style.display='none'}} 
+                     />
+                   ) : (
+                     <div className="w-full h-full flex items-center justify-center text-xl">📦</div>
+                   )}
+                </div>
 
-                <div>
-                  <h4 style={{ margin: "0 0 2px 0", color: "#334155", fontSize: "0.95rem" }}>{prod.nombre}</h4>
-                  {prod.descripcion && <p style={{ margin: "0 0 4px 0", color: "#64748b", fontSize: "0.75rem", lineHeight: "1.3" }}>{prod.descripcion}</p>}
-                  <span style={{ color: "#16a34a", fontWeight: "bold", fontSize: "0.9rem" }}>${prod.precio}</span>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-bold text-slate-800 truncate">{prod.nombre}</h4>
+                  {prod.descripcion && <p className="text-xs text-slate-500 truncate">{prod.descripcion}</p>}
+                  <span className="text-emerald-600 font-bold text-sm mt-1 block">${prod.precio}</span>
                 </div>
               </div>
 
-              <button onClick={() => agregar(prod)} style={{ backgroundColor: esModoServicio ? "#f3e8ff" : "#eff6ff", color: esModoServicio ? "#7e22ce" : "#2563eb", border: "none", padding: "8px 12px", borderRadius: "8px", fontSize: "0.8rem", cursor: "pointer", fontWeight: "bold", whiteSpace: "nowrap" }}>
+              <button 
+                onClick={() => agregar(prod)} 
+                className={`ml-2 px-3 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
+                  esModoServicio ? "bg-purple-50 text-purple-700 hover:bg-purple-100" : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                }`}
+              >
                 {esModoServicio ? 'Agendar +' : 'Agregar +'}
               </button>
             </div>
@@ -120,26 +129,27 @@ export const Tienda = ({ nombreNegocio, numeroWhatsApp, esModoServicio, alCerrar
         </div>
       )}
 
-      {/* 👇 CARRITO CON BOTÓN DE BORRAR */}
+      {/* CARRITO FLOTANTE */}
       {carrito.length > 0 && (
-        <div style={{ position: "fixed", bottom: "20px", left: "20px", right: "20px", backgroundColor: "#1e293b", color: "white", padding: "12px 20px", borderRadius: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", boxShadow: "0 10px 25px rgba(0,0,0,0.3)", zIndex: 3000 }}>
+        <div className="fixed bottom-5 left-5 right-5 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex justify-between items-center z-50">
           
           <div>
-            <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{carrito.length} {esModoServicio ? 'servicios' : 'ítems'}</div>
-            <div style={{ fontSize: "1.2rem", fontWeight: "bold" }}>${total} CUP</div>
+            <div className="text-xs text-slate-400 font-medium">{carrito.length} {esModoServicio ? 'servicios' : 'ítems'}</div>
+            <div className="text-lg font-bold">${total} CUP</div>
           </div>
 
-          <div style={{ display: "flex", gap: "10px" }}>
-            {/* BOTÓN BASURA */}
+          <div className="flex gap-3">
             <button 
               onClick={limpiarCarrito}
-              style={{ backgroundColor: "#dc2626", color: "white", border: "none", width: "40px", height: "40px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}
+              className="bg-red-500/20 text-red-400 p-3 rounded-xl hover:bg-red-500/30 transition-colors"
             >
               🗑️
             </button>
 
-            {/* BOTÓN PEDIR */}
-            <button onClick={generarPedido} style={{ backgroundColor: "#22c55e", color: "white", border: "none", padding: "0 20px", borderRadius: "10px", fontWeight: "bold", cursor: "pointer" }}>
+            <button 
+              onClick={generarPedido} 
+              className="bg-emerald-500 text-white px-5 py-3 rounded-xl font-bold text-sm hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-500/20"
+            >
               {esModoServicio ? 'Pedir Cita' : 'Pedir'}
             </button>
           </div>
