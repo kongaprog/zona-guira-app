@@ -6,27 +6,28 @@ const NEGOCIOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4n
 const PRODUCTOS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=52042393&single=true&output=csv'; 
 const MURO_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSlW4nMl5_NutZ13UESh9P7J8CVgjoaNfJGwngCmSjnMTWiDKPeg_05x4Wm4llSNl46s1qzwFc5IF1r/pub?gid=150919361&single=true&output=csv'; 
 
-// --- FUNCIÓN DE FOTO "HTTPS" (SEGURA PARA MÓVIL) ---
+// --- FUNCIÓN DE FOTO BLINDADA HTTPS (V3) ---
 const procesarFoto = (rawUrl: string): string => {
   if (!rawUrl || typeof rawUrl !== 'string') return '';
   
   let url = rawUrl.trim();
   
-  // Detectamos enlaces de Google Drive
-  if (url.includes('drive.google') || url.includes('googleusercontent')) {
-    // 1. Buscamos el ID (cadena larga de letras y números)
-    const idMatch = url.match(/[-\w]{25,}/);
-    if (idMatch) {
-      const id = idMatch[0];
-      // ⚠️ AQUÍ ESTABA EL ERROR: Usamos HTTPS y el servidor lh3 que es CDN directo
-      return `https://lh3.googleusercontent.com/d/${id}=s1000`;
-    }
+  // Si NO es de Google Drive (ej: enlace directo de imgur, cloudinary), devolver tal cual
+  if (!url.includes('drive.google') && !url.includes('googleusercontent')) {
+    return url;
+  }
+
+  // Si es de Drive, extraemos el ID
+  const idMatch = url.match(/[-\w]{25,}/);
+  if (idMatch) {
+    const id = idMatch[0];
+    // 👇 LA CORRECCIÓN CLAVE: https:// y lh3.googleusercontent.com
+    return `https://lh3.googleusercontent.com/d/${id}=s1000`;
   }
   
   return url;
 };
 
-// ... (Resto de funciones igual que antes) ...
 const limpiarCoordenadas = (input: string): string => {
   if (!input) return '';
   const texto = input.trim();
