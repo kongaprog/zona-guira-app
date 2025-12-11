@@ -29,31 +29,24 @@ export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
   };
   const tieneWebReal = esEnlaceValido(negocio.web);
 
-  // --- LÓGICA DE CATEGORÍAS (Actualizada) ---
+  // --- LÓGICA DE CATEGORÍAS ---
   const cat = negocio.categoria.toLowerCase();
-
   const esComida = cat.match(/gastronom|comida|cafe|pan|dulce|restaurante|pizza|hamburguesa/);
   const esComercio = cat.match(/tienda|venta|ropa|celular|tecnologia|mercado|bodega|agro|vianda|regalo|zapato|belleza|salud|farmacia/);
   const esTransporte = cat.match(/transporte|taxi|bici|carrera|moto|mudanza/);
   const esServicio = cat.match(/taller|reparacion|peluqueria|barberia|unas|uñas|masaje|consultoria|diseño|foto|agencia|oficio/);
-  
-  // 👇 NUEVOS
   const esVivienda = cat.match(/vivienda|alquiler|casa|renta|permuta/);
   const esFiesta = cat.match(/evento|fiesta|payaso|decoracion|cumpleaños/);
 
-  // Lógica: Tienda interna si es (Comida, Comercio o Fiesta) Y (No tiene web)
   const tieneTiendaInterna = (esComida || esComercio || esFiesta) && !tieneWebReal;
-
-  // Lógica: Servicios también pueden tener "Lista de Precios" (Tienda modo servicio)
   const tieneListaServicios = (esServicio || esVivienda) && !tieneWebReal;
 
   if (verTienda) {
     return (
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#f8fafc", zIndex: 2000, overflowY: "auto" }}>
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#f8fafc", zIndex: 6000, overflowY: "auto" }}>
         <Tienda 
           nombreNegocio={negocio.nombre} 
           numeroWhatsApp={negocio.whatsapp}
-          // Si es servicio o vivienda, activamos modo servicio (lista de precios)
           esModoServicio={!!(esServicio || esVivienda)}
           alCerrar={() => setVerTienda(false)} 
         />
@@ -61,73 +54,111 @@ export const PerfilNegocio = ({ negocio, alVolver }: Props) => {
     );
   }
 
-  // --- COLOR DEL BADGE (ETIQUETA) ---
-  let colorFondo = "#e0f2fe"; // Azul (Default)
-  let colorTexto = "#0284c7";
-  let iconoDefault = "🏪";
+  // --- ETIQUETAS DE COLOR ---
+  let badgeColor = "bg-blue-100 text-blue-800";
+  if (esComida) badgeColor = "bg-red-100 text-red-800";
+  else if (esTransporte) badgeColor = "bg-yellow-100 text-yellow-800";
+  else if (esVivienda) badgeColor = "bg-purple-100 text-purple-800";
 
-  if (esComida) { colorFondo = "#fecaca"; colorTexto = "#991b1b"; iconoDefault = "🍽️"; }
-  else if (esTransporte) { colorFondo = "#fef08a"; colorTexto = "#854d0e"; iconoDefault = "🚖"; }
-  else if (esVivienda) { colorFondo = "#e9d5ff"; colorTexto = "#6b21a8"; iconoDefault = "🏠"; } // Morado
-  else if (esFiesta) { colorFondo = "#fed7aa"; colorTexto = "#9a3412"; iconoDefault = "🎉"; } // Naranja
-  else if (esServicio) { colorFondo = "#ddd6fe"; colorTexto = "#5b21b6"; iconoDefault = "🛠️"; }
+  // Estilos en línea para asegurar compatibilidad
+  const estiloBadge = {
+    backgroundColor: esComida ? "#fee2e2" : esTransporte ? "#fef9c3" : esVivienda ? "#f3e8ff" : "#e0f2fe",
+    color: esComida ? "#991b1b" : esTransporte ? "#854d0e" : esVivienda ? "#6b21a8" : "#0369a1",
+    padding: "6px 12px", borderRadius: "20px", fontWeight: "bold", fontSize: "0.8rem", textTransform: "uppercase" as const, display: "inline-block"
+  };
 
   return (
-    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#f8fafc", zIndex: 2000, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "white", zIndex: 5000, overflowY: "auto", display: "flex", flexDirection: "column" }}>
       
-      {/* PORTADA */}
-      <div style={{ height: "250px", backgroundColor: "#cbd5e1", position: "relative" }}>
+      {/* 1. HEADER (FOTO) - ESTILO CINE NEGRO LIMPIO */}
+      <div style={{ height: "40vh", minHeight: "300px", backgroundColor: "black", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        
+        {/* Botón Atrás Flotante */}
+        <button 
+          onClick={alVolver} 
+          style={{ 
+            position: "absolute", top: "20px", left: "20px", 
+            backgroundColor: "white", color: "black", 
+            border: "none", borderRadius: "50%", 
+            width: "45px", height: "45px", 
+            fontSize: "1.5rem", cursor: "pointer", 
+            zIndex: 20, display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
+          }}
+        >
+          ←
+        </button>
+
         {negocio.foto ? (
-          <img src={negocio.foto} alt={negocio.nombre} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img 
+            src={negocio.foto} 
+            alt={negocio.nombre} 
+            referrerPolicy="no-referrer"
+            style={{ 
+              width: "100%", 
+              height: "100%", 
+              objectFit: "contain", // La foto se ve ENTERA, sin recortes. El fondo es negro.
+              zIndex: 10 
+            }} 
+            onError={(e) => {e.currentTarget.src = 'https://via.placeholder.com/400x400?text=Sin+Foto'}}
+          />
         ) : (
-          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", color: "#64748b" }}>
-            {iconoDefault}
-          </div>
+          <div style={{ color: "#334155", fontSize: "1.2rem" }}>Sin Foto Disponible</div>
         )}
-        <button onClick={alVolver} style={{ position: "absolute", top: "15px", left: "15px", backgroundColor: "rgba(0,0,0,0.6)", color: "white", border: "none", borderRadius: "50%", width: "40px", height: "40px", fontSize: "1.5rem", cursor: "pointer" }}>←</button>
       </div>
 
-      {/* INFO */}
-      <div style={{ flex: 1, marginTop: "-30px", borderTopLeftRadius: "30px", borderTopRightRadius: "30px", backgroundColor: "white", padding: "25px 20px", boxShadow: "0 -4px 10px rgba(0,0,0,0.1)" }}>
-        <span style={{ backgroundColor: colorFondo, color: colorTexto, padding: "5px 12px", borderRadius: "15px", fontSize: "0.8rem", fontWeight: "bold", textTransform: "uppercase" }}>
-          {negocio.categoria}
-        </span>
+      {/* 2. CONTENIDO (Información Organizada) */}
+      <div style={{ flex: 1, padding: "30px 20px", marginTop: "-20px", backgroundColor: "white", borderRadius: "24px 24px 0 0", position: "relative", zIndex: 15 }}>
         
-        <h1 style={{ margin: "15px 0 10px 0", fontSize: "1.8rem", color: "#0f172a" }}>{negocio.nombre}</h1>
-        <p style={{ color: "#64748b", lineHeight: "1.6", marginBottom: "30px" }}>
-          {negocio.descripcion || "Encuéntranos en Zona Güira."}
-        </p>
+        {/* Cabecera Info */}
+        <div style={{ marginBottom: "25px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: "10px" }}>
+             <span style={estiloBadge}>{negocio.categoria}</span>
+             {negocio.ubicacion && <span style={{ fontSize: "0.8rem", color: "#64748b", display: "flex", alignItems: "center", gap: "4px" }}>📍 {negocio.ubicacion.split(',')[0]}</span>}
+          </div>
+          <h1 style={{ margin: 0, fontSize: "2.2rem", color: "#0f172a", fontWeight: "900", lineHeight: "1.1" }}>{negocio.nombre}</h1>
+        </div>
 
-        {/* 👇 BOTONES DINÁMICOS */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {/* Descripción */}
+        <div style={{ backgroundColor: "#f8fafc", padding: "20px", borderRadius: "16px", marginBottom: "30px", border: "1px solid #e2e8f0" }}>
+          <h3 style={{ margin: "0 0 10px 0", fontSize: "0.9rem", color: "#94a3b8", textTransform: "uppercase" }}>Sobre el negocio</h3>
+          <p style={{ color: "#334155", lineHeight: "1.6", fontSize: "1rem", whiteSpace: "pre-wrap" }}>
+            {negocio.descripcion || "Encuéntranos en Plaza Cuba. Ofrecemos los mejores servicios para ti."}
+          </p>
+        </div>
+
+        {/* 3. BOTONES DE ACCIÓN (Grandes y Claros) */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
           
-          {/* WEB EXTERNA */}
+          {/* Botón Web */}
           {tieneWebReal && negocio.web && (
-             <a href={negocio.web.startsWith('http') ? negocio.web : `https://${negocio.web}`} target="_blank" style={{ backgroundColor: "#0f172a", color: "white", padding: "15px", borderRadius: "12px", textAlign: "center", textDecoration: "none", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", fontSize: "1.1rem", boxShadow: "0 4px 6px rgba(0,0,0, 0.3)" }}>
-               🌐 Visitar Web / Redes
+             <a href={negocio.web.startsWith('http') ? negocio.web : `https://${negocio.web}`} target="_blank" style={{ backgroundColor: "#1e293b", color: "white", padding: "18px", borderRadius: "16px", textAlign: "center", textDecoration: "none", fontWeight: "bold", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", boxShadow: "0 4px 12px rgba(30, 41, 59, 0.2)" }}>
+               🌐 Visitar Sitio Web
              </a>
           )}
 
-          {/* TIENDA (CATÁLOGO) */}
+          {/* Botón Tienda Interna */}
           {tieneTiendaInterna && (
-            <button onClick={() => setVerTienda(true)} style={{ backgroundColor: "#3b82f6", color: "white", border: "none", padding: "15px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", fontSize: "1.1rem", boxShadow: "0 4px 6px rgba(59, 130, 246, 0.3)" }}>
+            <button onClick={() => setVerTienda(true)} style={{ backgroundColor: "#2563eb", color: "white", border: "none", padding: "18px", borderRadius: "16px", fontWeight: "bold", cursor: "pointer", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", boxShadow: "0 4px 12px rgba(37, 99, 235, 0.3)" }}>
               {esFiesta ? '🎉 Ver Paquetes' : (esComida ? '🍽️ Ver Menú' : '🛍️ Ver Catálogo')}
             </button>
           )}
 
-          {/* LISTA DE SERVICIOS */}
+          {/* Botón Servicios */}
           {tieneListaServicios && (
-             <button onClick={() => setVerTienda(true)} style={{ backgroundColor: "#8b5cf6", color: "white", border: "none", padding: "15px", borderRadius: "12px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", fontSize: "1.1rem" }}>
-               {esVivienda ? '🏠 Ver Precios / Fotos' : '🛠️ Ver Servicios y Precios'}
+             <button onClick={() => setVerTienda(true)} style={{ backgroundColor: "#7c3aed", color: "white", border: "none", padding: "18px", borderRadius: "16px", fontWeight: "bold", cursor: "pointer", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", boxShadow: "0 4px 12px rgba(124, 58, 237, 0.3)" }}>
+               {esVivienda ? '🏠 Ver Precios / Fotos' : '🛠️ Ver Servicios'}
              </button>
           )}
 
-          {/* WHATSAPP */}
-          <a href={`https://wa.me/53${negocio.whatsapp}?text=${encodeURIComponent("Hola, vi su negocio en Zona Güira 👋")}`} target="_blank" style={{ backgroundColor: "#22c55e", color: "white", padding: "15px", borderRadius: "12px", textAlign: "center", textDecoration: "none", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", fontSize: "1.1rem", boxShadow: "0 4px 6px rgba(34, 197, 94, 0.3)" }}>
+          {/* Botón WhatsApp (Principal) */}
+          <a href={`https://wa.me/53${negocio.whatsapp}?text=${encodeURIComponent("Hola, vi su negocio en Plaza Cuba 👋")}`} target="_blank" style={{ backgroundColor: "#16a34a", color: "white", padding: "18px", borderRadius: "16px", textAlign: "center", textDecoration: "none", fontWeight: "bold", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", boxShadow: "0 4px 12px rgba(22, 163, 74, 0.3)" }}>
             💬 Contactar por WhatsApp
           </a>
 
         </div>
+        
+        <div style={{ height: "40px" }}></div> {/* Espacio extra abajo */}
       </div>
     </div>
   );

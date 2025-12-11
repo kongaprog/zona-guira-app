@@ -1,6 +1,40 @@
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #f1f5f9; /* Color gris claro de fondo */
-  font-family: system-ui, -apple-system, sans-serif;
+/* POPUP ESTILO DARK */
+.leaflet-popup-content-wrapper {
+  padding: 0 !important;
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background-color: #0f172a !important; /* Fondo oscuro */
+  color: white !important;
+}
+
+.leaflet-popup-tip {
+  background: #0f172a !important; /* La flechita oscura */
+}
+
+/* Quitar botón de cerrar por defecto porque afea el diseño */
+.leaflet-popup-close-button {
+  display: none !important; 
+}
+/* --- MAPA MODO OSCURO DETALLADO (Estilo "Midnight") --- */
+
+/* Esto invierte los colores del mapa normal para hacerlo oscuro pero manteniendo detalles */
+.leaflet-layer {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+/* POPUP (La ficha del negocio) - Estilo Integrado */
+.leaflet-popup-content-wrapper {
+  background-color: #1e293b !important; /* Gris Azulado Oscuro (Slate-800) */
+  color: #f1f5f9 !important;
+  border-radius: 12px !important;
+  border: 1px solid #334155 !important; /* Borde sutil */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-popup-tip {
+  background: #334155 !important; /* Flecha gris oscura */
+}
+
+.leaflet-popup-close-button {
+  color: #94a3b8 !important; /* X gris suave */
 }
