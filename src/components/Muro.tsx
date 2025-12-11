@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchAnuncios } from '../services/googleSheetService';
 import type { Anuncio } from '../types';
-import { MessageCircle, Clock, Megaphone, CheckCircle2 } from 'lucide-react';
+import { MessageCircle, Clock, Megaphone } from 'lucide-react';
 
 export const Muro = () => {
   const [todosLosAnuncios, setTodosLosAnuncios] = useState<Anuncio[]>([]);
@@ -29,7 +29,7 @@ export const Muro = () => {
     }
   }, [filtroActivo, todosLosAnuncios]);
 
-  // Estilos de Etiquetas
+  // Estilos de Etiquetas (Colores suaves y elegantes)
   const getEstiloTipo = (tipo: string) => {
     const t = (tipo || "").toLowerCase();
     if (t.includes('venta')) return { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'VENTA' }; 
